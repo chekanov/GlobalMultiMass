@@ -38,7 +38,7 @@ DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3,
 
 # Maximum pseudo-experiments for global p-value
 # for 5 sigmal local, set to maximum value, like 10^6!
-MaxEvents=1
+MaxEvents=10
 
 
 ## Expected local significance as in BumpHunter
@@ -65,7 +65,6 @@ def z_to_p_value(z_value):
     p_value = ROOT.Math.normal_cdf_c(z_value)
     return p_value
 
-import numpy as np
 
 #“Asimov” (profile likelihood) significance (recommended)
 # when S<<D
@@ -564,4 +563,3 @@ c1.Update()
 if (myinput != "-b"):
               if (input("Press any key to exit") != "-9999"):
                          c1.Close(); sys.exit(1);
-
