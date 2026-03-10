@@ -1,5 +1,5 @@
 from math import log
-import os,sys,json
+import math,os,sys,json
 import ROOT
 from ROOT import TCanvas, TPostScript, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
@@ -42,7 +42,7 @@ MaxEvents=1
 
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=3 
+ExpectedLocalZvalue=4  
 
 
 
@@ -64,6 +64,34 @@ def z_to_p_value(z_value):
     # normal_cdf_c(z, sigma=1, x0=0) computes 1 - Phi(z) directly
     p_value = ROOT.Math.normal_cdf_c(z_value)
     return p_value
+
+import numpy as np
+
+#“Asimov” (profile likelihood) significance (recommended)
+# when S<<D
+# Often used in HEP; behaves better, especially when SS is not ≪D≪D:
+def asimov_significance(S, D):
+    """
+    Asimov (profile likelihood) significance for counting experiment:
+        Z = sqrt( 2 * [ (S + D) * ln(1 + S/D) - S ] )
+
+    S: expected signal (>= 0)
+    D: expected background (> 0)
+    returns: Z in "sigma" units (float)
+    """
+    S = float(S)
+    D = float(D)
+
+    if S < 0:
+        raise ValueError("S must be >= 0")
+    if D <= 0:
+        raise ValueError("D must be > 0")
+
+    z2 = 2.0 * ((S + D) * math.log1p(S / D) - S)  # log1p(x) = ln(1+x)
+    if z2 < 0:  # guard against tiny negative due to rounding
+        z2 = 0.0
+    return math.sqrt(z2)
+
 
 
 # get maximum X of a histogram 
@@ -172,6 +200,10 @@ Histograms_fromJJ={}
 
 # use it for debug
 # CHANNELS=["jj"]
+
+
+# Just count histograms..
+Ntot=0
 
 ## fill from the files parameters
 print("Read all paramters from JSON") 
@@ -397,11 +429,15 @@ for event in range(MaxEvents):
             ## Run over difference data-fit, find maximum, and them loook at left and right devitations
             ## untill you see signal above > ExpectedLocalSignificance  
 
-            ## Let's mimic it for now. Find residuals from the fit
-            deviation=0
+
+            # This is for debug only! 
+            # if (channel != "jb" or TRIG_TYPE != 2): continue
+
+            Ntot=Ntot+1
+
+            ## Let's mimic BumpHunt for now. Find residuals from the fit and just look at significance of a single bin
+            ## Note: Real BumpHunt also adds adjusted bins
             sign=0;
-
-
             XmaxVal=getMaxHistoX(hback,1)
             #print("XmaxVal=",XmaxVal)
             for i in range(hback.GetNbinsX() - 1):
@@ -410,14 +446,17 @@ for event in range(MaxEvents):
                 ydata = hback.GetBinContent(i + 1)
                 yfit= back.Eval(center) 
                 deviation=ydata-yfit
-                # also need to find left and right bins!
-                significance = deviation / TMath.Sqrt(yfit)
+                # also need to find left and right bins! Do it for 1 bin now! 
+                significance = 0
+                if (deviation>0): significance=asimov_significance(deviation, yfit) 
                 # print(center, significance)
                 if (significance>sign): 
                                 sign=significance;
+                                sign_center=center
 
             if sign>ExpectedLocalZvalue:
                     NrFound=NrFound+1
+                    print("Found bump with significance=",sign," and postion=",sign_center)
 
 
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
@@ -515,7 +554,7 @@ hhD.Draw("pe same")
 
 
 # only for debugging.. Make it fluctuate 
-if (FluctuateBin != None):
+if (len(FluctuateBin)>0):
             print("We fluctuated events in overlap! Check FluctuateBin")
 
 print (epsfig)
