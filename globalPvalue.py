@@ -1,8 +1,13 @@
 from math import log
 import os,sys,json
 import ROOT
-from ROOT import TCanvas, TLegend, gPad, TF1, TRandom3, TH1D, TMath
+from ROOT import TCanvas, TPostScript, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
+
+myinput="interactive"
+# trigger type
+if (len(sys.argv) ==2):
+   myinput =sys.argv[1]
 
 # -----------------------------
 # Configuration
@@ -17,8 +22,19 @@ CHANNELS = ["jj", "jb", "bb", "je", "jm", "jg", "be", "bm", "bg"]
 # For example, jb:0.4 means that 40% of events originate from jj.
 #              je:0.2 means that 20% of events originte from jj etc 
 
-# we use just for T2 trigger, but this can be trigger dependent
-DEFALT_OVERLAP={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}  
+# Trigger-dependent overlap values 
+# Should be modified using Wasikul's plots
+DEFALT_OVERLAP1={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}  
+DEFALT_OVERLAP2={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
+DEFALT_OVERLAP3={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
+DEFALT_OVERLAP4={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
+DEFALT_OVERLAP5={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
+DEFALT_OVERLAP6={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
+DEFALT_OVERLAP7={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
+# This is overlap for different triggers
+DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3, 
+                        4:DEFALT_OVERLAP4, 5:DEFALT_OVERLAP5, 6:DEFALT_OVERLAP6,7:DEFALT_OVERLAP7} 
+
 
 # Maximum pseudo-experiments for global p-value
 # for 5 sigmal local, set to maximum value, like 10^6!
@@ -26,7 +42,49 @@ MaxEvents=1
 
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalSignificance=3 
+ExpectedLocalZvalue=3 
+
+
+
+def p_to_z_value (p, excess) :
+  """the function normal_quantile converts a p-value into a significance,
+  i.e. the number of standard deviations corresponding to the right-tail of 
+  a Gaussian"""
+  if excess :
+    zval = ROOT.Math.normal_quantile(1-p,1);
+  else :
+    zval = ROOT.Math.normal_quantile(p,1);
+  return zval
+
+
+def z_to_p_value(z_value):
+    """
+    Converts a Z-score to a one-sided p-value using ROOT::Math.
+    """
+    # normal_cdf_c(z, sigma=1, x0=0) computes 1 - Phi(z) directly
+    p_value = ROOT.Math.normal_cdf_c(z_value)
+    return p_value
+
+
+# get maximum X of a histogram 
+def getMaxHistoX(h1, xmin):
+    xaxis = h1.GetXaxis()
+    Ntot = xaxis.GetNbins()+1
+    xmax=0
+    for i in range(Ntot):
+        y1 = h1.GetBinContent(i+1)
+        x1 = h1.GetBinCenter(i+1)
+        if (y1 < xmin):
+             xmax= x1
+             break
+    return xmax 
+
+
+
+
+print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
+
+
 
 # Make Bin=30 to fluctuate by 500 events for debugging!
 # Comment this out to remove this fluctuation
@@ -48,8 +106,11 @@ r=TRandom3()
 # some X , and Y ranges 
 XMAX = 9000
 XMIN = 300
-YMIN = 0.11
+YMIN = 0.81
 YMAX = 100000 
+
+# counter for significant events
+NrFound=0
 
 
 def trigger_settings(trig_type: int) -> tuple[int, str]:
@@ -132,6 +193,8 @@ for event in range(MaxEvents):
     # loop over 7 triggers
     for TRIG_TYPE in range(1, 8):
         print("TRIGGER=", TRIG_TYPE)
+        DEFALT_OVERLAP = DEFALT_OVERLAP_TRIGGER[TRIG_TYPE] # get overlap for this trigger
+
         # Loop over each mass for a channel
         for channel in CHANNELS:
 
@@ -305,6 +368,21 @@ for event in range(MaxEvents):
             hback.SetDirectory(0)
             hback.Add(hback1)
 
+            # finally, clean-up all these things..
+            # adding 2 histogram where 1 is a template may have content <1. Fix
+            for i in range(hback.GetNbinsX() - 1):
+                center = hback.GetBinCenter(i + 1)
+                y=hback.GetBinContent(i + 1)
+                if (y<1.0):
+                    hback.SetBinContent(i + 1, 0)
+                    hback.SetBinError(i + 1, 0)
+                y=hback1.GetBinContent(i + 1)
+                if (y<1.0):
+                    hback1.SetBinContent(i + 1, 0)
+                    hback1.SetBinError(i + 1, 0)
+
+
+
             # collect histograms
             BackgroudFunction[hback_name] = back  
             Histograms[hback_name] = hback
@@ -312,12 +390,49 @@ for event in range(MaxEvents):
             Histograms_FromOverlap[hback1_name] = hback1     # events coming from overlap
             Histograms_OriginalEvents[hback2_name] = hback2  # original events
 
-            # Now, search for 3-sigma local bump in the histogram hback, and count the event.
+            # Now, search for 3-sigma local bump in the histogram "hback", and count the event.
             # How many such bumps are found for the maximum number of events ?
             # The deviations are searched agains the backgrond function "back"
             ########################## Use Bump Hunter algorithm #########
             ## Run over difference data-fit, find maximum, and them loook at left and right devitations
             ## untill you see signal above > ExpectedLocalSignificance  
+
+            ## Let's mimic it for now. Find residuals from the fit
+            deviation=0
+            sign=0;
+
+
+            XmaxVal=getMaxHistoX(hback,1)
+            #print("XmaxVal=",XmaxVal)
+            for i in range(hback.GetNbinsX() - 1):
+                center = hback.GetBinCenter(i + 1)
+                if (center<XMIN or center>XmaxVal): continue
+                ydata = hback.GetBinContent(i + 1)
+                yfit= back.Eval(center) 
+                deviation=ydata-yfit
+                # also need to find left and right bins!
+                significance = deviation / TMath.Sqrt(yfit)
+                # print(center, significance)
+                if (significance>sign): 
+                                sign=significance;
+
+            if sign>ExpectedLocalZvalue:
+                    NrFound=NrFound+1
+
+
+# the probability that background fluctuations alone (the null hypothesis) could produce a 
+# result as extreme as, or more extreme than, the observed experimental data
+print("Total events=", MaxEvents)
+print("Found events=", NrFound)
+pvalue=float(NrFound)/MaxEvents
+print("Global p-value=",pvalue)
+
+
+figdir="figs/"
+name=os.path.basename(__file__)
+name=name.replace(".py","")
+epsfig=figdir+name+".eps"
+ps1 = TPostScript( epsfig,113)
 
 
 # Plot one histogram for debugging
@@ -339,7 +454,7 @@ channel2="jj"
 hhJJ=Histograms_fromJJ[f"histo_{TRIG_TYPE}_{channel2}"]
 hhJJ.SetAxisRange(Ymin, Ymax,"y");
 hhJJ.SetAxisRange(Xmin, Xmax,"x");
-hhJJ.SetMarkerColor(5)
+hhJJ.SetMarkerColor(4)
 hhJJ.SetMarkerSize(0.5)
 hhJJ.SetMarkerStyle(21)
 
@@ -363,6 +478,11 @@ hhD.SetStats(0)
 hhD.Draw("pe")
 hhBak.SetLineColor(1)
 hhBak.Draw("l same")
+
+hhD.GetXaxis().SetTitle( "Mass [GeV]" );
+hhD.GetYaxis().SetTitle( "Events" );
+
+
 
 hhD1.SetAxisRange(Xmin, Xmax,"x");
 hhD1.SetMarkerColor(2)
@@ -398,7 +518,9 @@ hhD.Draw("pe same")
 if (FluctuateBin != None):
             print("We fluctuated events in overlap! Check FluctuateBin")
 
-myinput="r"
+print (epsfig)
+ps1.Close()
+
 c1.Update()
 if (myinput != "-b"):
               if (input("Press any key to exit") != "-9999"):
