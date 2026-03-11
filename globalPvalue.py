@@ -38,7 +38,7 @@ DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3,
 
 # Maximum pseudo-experiments for global p-value
 # for 5 sigmal local, set to maximum value, like 10^6!
-MaxEvents=10
+MaxEvents=100
 
 
 ## Expected local significance as in BumpHunter
@@ -219,11 +219,14 @@ for TRIG_TYPE in range(1, 8):
 print("Loop over events",MaxEvents)
 for event in range(MaxEvents):
 
+    BumpFound=False # so far no bump found for this run
+
+
     if (event %1000 == 0 ): print("Event=",event)
 
     # loop over 7 triggers
     for TRIG_TYPE in range(1, 8):
-        print("TRIGGER=", TRIG_TYPE)
+        # print("TRIGGER=", TRIG_TYPE)
         DEFALT_OVERLAP = DEFALT_OVERLAP_TRIGGER[TRIG_TYPE] # get overlap for this trigger
 
         # Loop over each mass for a channel
@@ -279,7 +282,7 @@ for event in range(MaxEvents):
                 hbackJJ.SetTitle(hbackJJ_name)
                 hbackJJ.SetName(hbackJJ_name)
                 hbackJJ.SetDirectory(0)
-                print("Created JJ template")
+                #print("Created JJ template")
 
                 residuals=[]
                 for i in range(hbackJJ.GetNbinsX() - 1):
@@ -454,12 +457,13 @@ for event in range(MaxEvents):
                                 sign_center=center
 
             if sign>ExpectedLocalZvalue:
-                    NrFound=NrFound+1
+                    BumpFound=True 
                     print("Found bump with significance=",sign," and postion=",sign_center)
-
+    if (BumpFound): NrFound= NrFound+1
 
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
 # result as extreme as, or more extreme than, the observed experimental data
+print()
 print("Total events=", MaxEvents)
 print("Found events=", NrFound)
 pvalue=float(NrFound)/MaxEvents
