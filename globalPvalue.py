@@ -35,14 +35,28 @@ DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3,
                         4:DEFALT_OVERLAP4, 5:DEFALT_OVERLAP5, 6:DEFALT_OVERLAP6,7:DEFALT_OVERLAP7} 
 
 
+# if you do not want overlap, set to True:
+noOverlap=False;
+if (noOverlap==True):
+  print("No overlap requested")
+  for d in DEFALT_OVERLAP_TRIGGER.values():
+    for k in d:
+        d[k] = 0
+  print(DEFALT_OVERLAP_TRIGGER)
+
+if (noOverlap==False):
+          print("Running with overlaps")
+else:
+          print("Running without overlaps")  
+
 # Maximum pseudo-experiments for global p-value
 # for 5 sigmal local, set to maximum value, like 10^6!
-MaxEvents=10
-
+MaxEvents=100
+print("The number of pseudo-experiments=",MaxEvents)
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=4  
-
+ExpectedLocalZvalue=5  
+print("Expected local significance Z=",ExpectedLocalZvalue," sigma")
 
 
 def p_to_z_value (p, excess) :
@@ -117,8 +131,10 @@ print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_valu
 FluctuateBin={}
 # FluctuateBin={30: 500}
 
-# default trigger. In future we will add other independent triggers
-TRIG_TYPE = 2
+# Do not process histograms with less than 50 entries 
+MinEntries =50 
+print("Min number of entries=",MinEntries)
+
 
 # default histogram Bins
 mjjBinsL = [99,112,125,138,151,164,177,190, 203, 216, 229, 243, 257, 272, 287, 303, 319, 335, 352, 369, 387, 405, 424, 443, 462, 482, 502, 523, 544, 566, 588, 611, 634, 657, 681, 705, 730, 755, 781, 807, 834, 861, 889, 917, 946, 976, 1006, 1037, 1068, 1100, 1133, 1166, 1200, 1234, 1269, 1305, 1341, 1378, 1416, 1454, 1493, 1533, 1573, 1614, 1656, 1698, 1741, 1785, 1830, 1875, 1921, 1968, 2016, 2065, 2114, 2164, 2215, 2267, 2320, 2374, 2429, 2485, 2542, 2600, 2659, 2719, 2780, 2842, 2905, 2969, 3034, 3100, 3167, 3235, 3305, 3376, 3448, 3521, 3596, 3672, 3749, 3827, 3907, 3988, 4070, 4154, 4239, 4326, 4414, 4504, 4595, 4688, 4782, 4878, 4975, 5074, 5175, 5277, 5381, 5487, 5595, 5705, 5817, 5931, 6047, 6165, 6285, 6407, 6531, 6658, 6787, 6918, 7052, 7188, 7326, 7467, 7610, 7756, 7904, 8055, 8208, 8364, 8523, 8685, 8850, 9019, 9191, 9366, 9544, 9726, 9911, 10100, 10292, 10488, 10688, 10892, 11100, 11312, 11528, 11748, 11972, 12200, 12432, 12669, 12910, 13156];
@@ -152,8 +168,6 @@ def trigger_settings(trig_type: int) -> tuple[int, str]:
     }
     return settings.get(trig_type, (300, "1 lep"))
 
-
-XMIN, TLABEL = trigger_settings(TRIG_TYPE)
 
 
 # -----------------------------
@@ -225,6 +239,9 @@ for event in range(MaxEvents):
 
     # loop over 7 triggers
     for TRIG_TYPE in range(1, 8):
+
+        XMIN, TLABEL = trigger_settings(TRIG_TYPE)
+
         # print("TRIGGER=", TRIG_TYPE)
         DEFALT_OVERLAP = DEFALT_OVERLAP_TRIGGER[TRIG_TYPE] # get overlap for this trigger
 
@@ -313,7 +330,6 @@ for event in range(MaxEvents):
             hback1.SetDirectory(0)
 
             # Now we create 2nd histogram using the background function for this channel 
-            # do not fluctauate it as we do this later
             hback2_name = f"histo2_{TRIG_TYPE}_{channel}"
             hback2 = hbackJJ.Clone() # we clone it from JJ 
             hback2.SetTitle(hback2_name)
@@ -401,6 +417,10 @@ for event in range(MaxEvents):
             hback.SetDirectory(0)
             hback.Add(hback1)
 
+            TotalEvents=hback.Integral()
+            if (TotalEvents<MinEntries):
+                               continue # ignore low multiplicities 
+
             # finally, clean-up all these things..
             # adding 2 histogram where 1 is a template may have content <1. Fix
             for i in range(hback.GetNbinsX() - 1):
@@ -457,7 +477,7 @@ for event in range(MaxEvents):
 
             if sign>ExpectedLocalZvalue:
                     BumpFound=True 
-                    print("Found bump with significance=",sign," and postion=",sign_center)
+                    print("Bump with significance=","{:.1f}".format(sign)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
     if (BumpFound): NrFound= NrFound+1
 
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
