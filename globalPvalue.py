@@ -21,16 +21,15 @@ CHANNELS = ["jj", "jb", "bb", "je", "jm", "jg", "be", "bm", "bg"]
 # the shape of jj (which is a good assamption since all such masses are basically p5 with very similar shapes
 # For example, jb:0.4 means that 40% of events originate from jj.
 #              je:0.2 means that 20% of events originte from jj etc 
-
 # Trigger-dependent overlap values 
 # Should be modified using Wasikul's plots
-DEFALT_OVERLAP1={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}  
-DEFALT_OVERLAP2={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
-DEFALT_OVERLAP3={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
-DEFALT_OVERLAP4={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
-DEFALT_OVERLAP5={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
-DEFALT_OVERLAP6={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
-DEFALT_OVERLAP7={"jj":0.0, "jb":0.35, "bb":0.3, "je":0.20, "jm":0.20, "jg":0.20, "be":0.1, "bm":0.1, "bg":0.1}
+DEFALT_OVERLAP1={"jj":0.0, "bb":0.41, "jb":0.63, "jm":0.34, "je":0.34, "jg":0.06, "be":0.20, "bm":0.2, "bg":0.01}  
+DEFALT_OVERLAP2={"jj":0.0, "bb":0.27, "jb":0.37, "jm":0.53, "je":0.53, "jg":0.01, "be":0.24, "bm":0.25, "bg":0.01}
+DEFALT_OVERLAP3={"jj":0.0, "bb":0.01, "jb":0.28, "jm":0.53, "je":0.52, "jg":0.01, "be":0.16, "bm":0.19, "bg":0.01}
+DEFALT_OVERLAP4={"jj":0.0, "bb":0.13, "jb":0.14, "jm":0.02, "je":0.02, "jg":0.99, "be":0.01, "bm":0.01, "bg":0.24}
+DEFALT_OVERLAP5={"jj":0.0, "bb":0.03, "jb":0.16, "jm":0.02, "je":0.01, "jg":0.99, "be":0.01, "bm":0.01, "bg":0.16}
+DEFALT_OVERLAP6={"jj":0.0, "bb":0.31, "jb":0.47, "jm":0.04, "je":0.05, "jg":0.12, "be":0.02, "bm":0.02, "bg":0.02}
+DEFALT_OVERLAP7={"jj":0.0, "bb":0.43, "jb":0.57, "jm":0.04, "je":0.05, "jg":0.06, "be":0.03, "bm":0.03, "bg":0.02}
 # This is overlap for different triggers
 DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3, 
                         4:DEFALT_OVERLAP4, 5:DEFALT_OVERLAP5, 6:DEFALT_OVERLAP6,7:DEFALT_OVERLAP7} 
@@ -38,7 +37,7 @@ DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3,
 
 # Maximum pseudo-experiments for global p-value
 # for 5 sigmal local, set to maximum value, like 10^6!
-MaxEvents=100
+MaxEvents=10
 
 
 ## Expected local significance as in BumpHunter
@@ -522,7 +521,7 @@ hhBak.SetLineColor(1)
 hhBak.Draw("l same")
 
 hhD.GetXaxis().SetTitle( "Mass [GeV]" );
-hhD.GetYaxis().SetTitle( "Events" );
+hhD.GetYaxis().SetTitle( "Pseudo Events" );
 
 
 
@@ -542,16 +541,17 @@ hhD2.Draw("pe same")
 hhJJ.Draw("pe same")
 
 
-leg2=TLegend(0.5, 0.65, 0.89, 0.84);
+leg2=TLegend(0.5, 0.55, 0.89, 0.84);
 leg2.SetBorderSize(0);
 leg2.SetTextFont(62);
 leg2.SetFillColor(10);
 leg2.SetTextSize(0.04);
-leg2.AddEntry(hhD,"Data T="+str(TRIG_TYPE)+" "+str(channel),"lp")
-leg2.AddEntry(hhBak,"Fit","lp")
-leg2.AddEntry(hhD1,"Original for "+str(channel),"lp")
-leg2.AddEntry(hhD2,"From overlaping JJ","lp")
-leg2.AddEntry(hhJJ,"Original JJ","lp")
+leg2.SetHeader("T="+str(TRIG_TYPE)+" "+str(channel))
+leg2.AddEntry(hhBak,"Fit template","lp")
+leg2.AddEntry(hhD,"Obtained sample","lp")
+leg2.AddEntry(hhD2,"From JJ overlap","lp")
+leg2.AddEntry(hhD1,"Expected from "+str(channel),"lp")
+leg2.AddEntry(hhJJ,"JJ distribution","lp")
 leg2.Draw("same");
 hhD.Draw("pe same")
 
