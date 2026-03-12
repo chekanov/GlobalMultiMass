@@ -420,6 +420,10 @@ for event in range(MaxEvents):
             ##hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
             hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, do_pseudo = True)
 
+            # Print bump
+            #state=hunter.save_state()
+            #print(state)
+
             #local_p_value = hunter.p_val
             ## where local significance??
             ## save 
