@@ -1,7 +1,10 @@
 # This code runs multiple pseudo-experiments for 63 jet+X masses.
 # You may adjust pyBumpHunter since it uses this package..
 import sys
-sys.path.append("../pyBumpHunter/")
+
+sys.path.append("./pyBumpHunter/")
+# Old
+# sys.path.append("../pyBumpHunter/")
 
 # also import some functions...
 from globalAux import *
@@ -411,9 +414,26 @@ for event in range(MaxEvents):
 
             
             ## Construct BumpHunter and weights
-            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
-            ## Bump Scan
-            hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
+            # hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
+            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom)
+            ## Bump Scan with systematics ...
+            ##hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
+            hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, do_pseudo = True)
+
+            #local_p_value = hunter.p_val
+            ## where local significance??
+            ## save 
+            #state=hunter.save_state()
+            #print(state)
+            #result=[]
+            #result.append(state["global_Pval"])
+            #result.append(state["significance"])
+            #print("Result=",result) 
+
+            #print(vars(hunter))
+            #print(hunter.min_pval)        # smallest local p-value found in the scan
+            #print(hunter.min_loc_ar)      # location/range of the bump
+            #print(hunter.signal_eval)     # estimated signal excess in the bump window
 
 
             ## Let's mimic BumpHunt for now. Find residuals from the fit and just look at significance of a single bin
