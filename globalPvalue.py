@@ -64,7 +64,7 @@ else:
 
 # Maximum pseudo-experiments for global p-value
 # for 5 sigmal local, set to maximum value, like 10^6!
-MaxEvents=1000
+MaxEvents=100
 print("The number of pseudo-experiments=",MaxEvents)
 
 ## Expected local significance as in BumpHunter
@@ -458,24 +458,6 @@ for event in range(MaxEvents):
             #result.append(state["significance"])
             #print("Result=",result) 
 
-
-            """
-            ## Let's mimic BumpHunt for now. Find residuals from the fit and just look at significance of a single bin
-            #print("XmaxVal=",XmaxVal)
-            for i in range(hback.GetNbinsX() - 1):
-                center = hback.GetBinCenter(i + 1)
-                if (center<XMIN or center>XmaxVal): continue
-                ydata = hback.GetBinContent(i + 1)
-                yfit= back.Eval(center) 
-                deviation=ydata-yfit
-                # also need to find left and right bins! Do it for 1 bin now! 
-                significance = 0
-                if (deviation>0): significance=asimov_significance(deviation, yfit) 
-                # print(center, significance)
-                if (significance>sign): 
-                                sign=significance;
-                                sign_center=center
-             """
             if Zval>ExpectedLocalZvalue:
                     BumpFound=True 
                     print("Bump with significance=","{:.1f}".format(Zval)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
