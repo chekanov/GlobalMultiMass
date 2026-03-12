@@ -10,18 +10,25 @@ from ROOT import TCanvas, TPostScript, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
 import uproot as upr  ## Used to read data from a root file
 
-def getMaxNonzero(h1,xmin, ycut=0.5):
+
+def getMaxNonzero(h1, xmin, ycut=0.5):
+    """ Find last X value .."""
     xaxis = h1.GetXaxis()
-    Ntot = xaxis.GetNbins()+1
-    xmax=xmin 
-    for i in range(Ntot):
-        y1 = h1.GetBinContent(i+1)
-        x1 = h1.GetBinCenter(i+1)
-        err=h1.GetBinWidth(i)
-        if ((x1-err)<xmin): continue
-        if (y1 < ycut):
-             xmax= xaxis.GetBinUpEdge(i) 
-             break
+    Ntot = xaxis.GetNbins()
+    xmax = xmin
+    for i in range(Ntot, 0, -1):
+        y1 = h1.GetBinContent(i)
+        x1 = h1.GetBinCenter(i)
+        err = h1.GetBinWidth(i)
+        if (x1 + err) < xmin:
+            continue
+        if y1 >= ycut:
+            xmax = xaxis.GetBinUpEdge(i)
+            break
+    if (xmax - xmin < 100):
+         print("XMIN and XMAX are too close!")
+         h1.Print("All")
+
     return xmax
 
 

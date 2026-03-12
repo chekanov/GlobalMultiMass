@@ -49,7 +49,7 @@ DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3,
 
 
 # if you do not want overlap, set to True:
-noOverlap=False;
+noOverlap=False
 if (noOverlap==True):
   print("No overlap requested")
   for d in DEFALT_OVERLAP_TRIGGER.values():
@@ -80,7 +80,7 @@ FluctuateBin={}
 # FluctuateBin={30: 500}
 
 # Do not process histograms with less than 50 entries 
-MinEntries =50 
+MinEntries =100 
 print("Min number of entries=",MinEntries)
 
 
