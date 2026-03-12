@@ -4,10 +4,12 @@ This repository contains code to compute the **global p-value (global significan
 
 ## Running the Code
 
+First, copy https://github.com/scikit-hep/pyBumpHunter to this directory.
+
 To run the analysis:
 
 ```bash
-source setup.sh
+source setup.sh # Only if needed! 
 python globalPvalue.py
 ```
 
