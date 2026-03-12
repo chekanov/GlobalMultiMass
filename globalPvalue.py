@@ -68,7 +68,7 @@ MaxEvents=100
 print("The number of pseudo-experiments=",MaxEvents)
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=5  
+ExpectedLocalZvalue=3  
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
 
 # CM energy for fit functions
@@ -80,7 +80,7 @@ FluctuateBin={}
 # FluctuateBin={30: 500}
 
 # Do not process histograms with less than 50 entries 
-MinEntries =100 
+MinEntries =1000 
 print("Min number of entries=",MinEntries)
 
 
@@ -386,10 +386,10 @@ for event in range(MaxEvents):
 
             sign=0;
             sign_center=0
-            XmaxVal=getMaxNonzero(hback,XMIN,2.0)
-            print("XMIN=",XMIN, " XMAX=",XmaxVal) 
+            #XmaxVal=getMaxNonzero(hback,XMIN,2.0)
+            #print("XMIN=",XMIN, " XMAX=",XmaxVal) 
             # get NuPy arrays
-            data_x_center, data_bin_width, data_y, hist_x = get_input(hback,fit_min=XMIN,fit_max=XmaxVal)
+            data_x_center, data_bin_width, data_y, hist_x = get_input(hback,fit_min=fit_min,fit_max=fit_max)
             bkg_x_center = data_x_center
             p1=parameters[0]
             p2=parameters[1]
@@ -489,7 +489,7 @@ print()
 print("Total events=", MaxEvents)
 print("Found events=", NrFound)
 pvalue=float(NrFound)/MaxEvents
-print("Global p-value=",pvalue)
+print("Global p-value=",pvalue, " for expected Z=",ExpectedLocalZvalue)
 
 
 figdir="figs/"

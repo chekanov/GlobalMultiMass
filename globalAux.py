@@ -29,7 +29,9 @@ def getMaxNonzero(h1, xmin, ycut=0.5):
          print("XMIN and XMAX are too close!")
          h1.Print("All")
 
-    if (xmax>12000): return 9000;
+    if (xmax>12000): 
+        h1.Print("All")
+        return 10000;
 
     return xmax
 
