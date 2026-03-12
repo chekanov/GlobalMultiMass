@@ -68,7 +68,7 @@ MaxEvents=100
 print("The number of pseudo-experiments=",MaxEvents)
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=4  
+ExpectedLocalZvalue=5  
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
 
 # CM energy for fit functions
@@ -398,9 +398,8 @@ for event in range(MaxEvents):
             p5=parameters[4]
             integral_data = None
             bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
-            bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
+            #bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
             bkg_sample_nom=bkg_function_nom
-
 
             # Do not use it for now..
             #p1_alt=parameters_alt[0]
@@ -415,8 +414,8 @@ for event in range(MaxEvents):
             ## Construct BumpHunter and weights and alternatiev fuctions (local for Jet+X) 
             # hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
             # Default from GIT. Just se 1 psedo-experiment since intrested in local significance 
-            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=30, width_step=1, scan_step=1, npe=0, seed=666, bins=hist_x, weights=weight_nom)
-            ## Bump Scan with systematics ...
+            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=30, width_step=1, scan_step=1, npe=0, seed=666, bins=hist_x)
+            ## Bump Scan with systematics from Jet+X analysis 
             ##hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
             hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, is_hist=True, do_pseudo = False)
 
@@ -441,7 +440,8 @@ for event in range(MaxEvents):
             Zval=0
             if (local_p>0 and local_p<1):
                          Zval=ROOT.RooStats.PValueToSignificance(local_p)
-                         hunter.bump_info(data_y) 
+                         #print(hunter.bump_info(data_y))
+
             # also use p_back = ROOT.RooStats.SignificanceToPValue(Z)
             #print("Local significance=",local_sign)
             #print("bumploc =", getattr(hunter, "bumploc", None))
@@ -468,8 +468,8 @@ for event in range(MaxEvents):
 
             if Zval>ExpectedLocalZvalue:
                     BumpFound=True 
-                    print("Bump with significance=","{:.1f}".format(Zval)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
-                    hunter.bump_info(data_y)
+                    print("Bump with local Z=","{:.1f}".format(Zval)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
+                    print(hunter.bump_info(data_y))
 
     if (BumpFound): NrFound= NrFound+1
 
