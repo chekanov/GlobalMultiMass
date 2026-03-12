@@ -68,7 +68,7 @@ MaxEvents=100
 print("The number of pseudo-experiments=",MaxEvents)
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=3  
+ExpectedLocalZvalue=4  
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
 
 # CM energy for fit functions
@@ -399,6 +399,8 @@ for event in range(MaxEvents):
             integral_data = None
             bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
             bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
+            bkg_sample_nom=bkg_function_nom
+
 
             # Do not use it for now..
             #p1_alt=parameters_alt[0]
@@ -413,10 +415,15 @@ for event in range(MaxEvents):
             ## Construct BumpHunter and weights and alternatiev fuctions (local for Jet+X) 
             # hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
             # Default from GIT. Just se 1 psedo-experiment since intrested in local significance 
-            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=20, width_step=1, scan_step=1, npe=0, seed=666, bins=hist_x, weights=weight_nom)
+            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=30, width_step=1, scan_step=1, npe=0, seed=666, bins=hist_x, weights=weight_nom)
             ## Bump Scan with systematics ...
             ##hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
             hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, is_hist=True, do_pseudo = False)
+
+            #print("Range=",fit_min,fit_max)
+            #hback.Print("All")
+            #print(data_y)
+            #print(bkg_function_nom)
 
             # local_pvalue = hunter.min_Pval_ar  # Array of minimum p-values from pseudo-experiments
             # The observed local p-value for the most significant bump
@@ -434,6 +441,7 @@ for event in range(MaxEvents):
             Zval=0
             if (local_p>0 and local_p<1):
                          Zval=ROOT.RooStats.PValueToSignificance(local_p)
+                         hunter.bump_info(data_y) 
             # also use p_back = ROOT.RooStats.SignificanceToPValue(Z)
             #print("Local significance=",local_sign)
             #print("bumploc =", getattr(hunter, "bumploc", None))
