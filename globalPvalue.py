@@ -1,14 +1,15 @@
+# This code runs multiple pseudo-experiments for 63 jet+X masses.
+# You may adjust pyBumpHunter since it uses this package..
 import sys
-sys.path.append("./pyBumpHunter/")
+sys.path.append("../pyBumpHunter/")
 
+# also import some functions...
+from globalAux import *
 
-# import numpy as np
-# import pyBumpHunter as BH
-
-from globalAux import * 
-
+import numpy as np
+import pyBumpHunter as BH
 from math import log
-import math,os,sys,json
+import math,os,json
 import ROOT
 from ROOT import TCanvas, TPostScript, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
@@ -135,6 +136,7 @@ Ntot=0
 ## fill from the files parameters
 print("Read all paramters from JSON") 
 mypar={}
+mypar_alt={}
 for TRIG_TYPE in range(1, 8):
      for channel in CHANNELS:
         fitfile = f"fits/fitme_p5_t{TRIG_TYPE}_{channel}.json"
@@ -143,6 +145,12 @@ for TRIG_TYPE in range(1, 8):
         with open(fitfile, "r") as jfile:
                data = json.load(jfile)
                mypar[fitfile] = data
+        fitfile_alt = f"fits/fitme_p5alt_t{TRIG_TYPE}_{channel}.json"
+        if os.path.isfile(fitfile_alt) is False:
+                continue
+        with open(fitfile_alt, "r") as jfile:
+               data_alt = json.load(jfile)
+               mypar_alt[fitfile] = data_alt 
 
 print("Loop over events",MaxEvents)
 for event in range(MaxEvents):
@@ -184,6 +192,10 @@ for event in range(MaxEvents):
             chi2 = float(data_fit["chi2"])
             fit_min = float(data_fit["fmin"])
             fit_max = float(data_fit["fmax"])
+
+            # alternative function for systematics  
+            data_fit_alt=mypar_alt[fitfile]
+            parameters_alt = data_fit_alt["parameters"]
 
             """
             chi2_ndf = chi2 / ndf if ndf else float("inf")
@@ -383,15 +395,25 @@ for event in range(MaxEvents):
             p3=parameters[2]
             p4=parameters[3]
             p5=parameters[4]
-            cms=13000
+            cms=13000. 
             integral_data = None
             bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
             bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
 
+            # Do not use it for now..
+            p1_alt=parameters_alt[0]
+            p2_alt=parameters_alt[1]
+            p3_alt=parameters_alt[2]
+            p4_alt=parameters_alt[3]
+            p5_alt=parameters_alt[4]
+            bkg_function_alt =FiveParam_alt(cms, bkg_x_center, p1_alt, p2_alt, p3_alt, p4_alt, p5_alt)
+            bkg_sample_alt, weight_alt = construct_bkg_sample(bkg_function_alt, bkg_x_center, integral_data)
+
+            
             ## Construct BumpHunter and weights
-            #hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=10000, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
+            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
             ## Bump Scan
-            #hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = (not args.syst))
+            hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
 
 
             ## Let's mimic BumpHunt for now. Find residuals from the fit and just look at significance of a single bin
