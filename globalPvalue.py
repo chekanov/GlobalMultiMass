@@ -64,7 +64,7 @@ else:
 
 # Maximum pseudo-experiments for global p-value
 # for 5 sigmal local, set to maximum value, like 10^6!
-MaxEvents=100
+MaxEvents=1000
 print("The number of pseudo-experiments=",MaxEvents)
 
 ## Expected local significance as in BumpHunter
@@ -80,7 +80,7 @@ FluctuateBin={}
 # FluctuateBin={30: 500}
 
 # Do not process histograms with less than 50 entries 
-MinEntries =1000 
+MinEntries = 50 
 print("Min number of entries=",MinEntries)
 
 
