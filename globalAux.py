@@ -29,6 +29,8 @@ def getMaxNonzero(h1, xmin, ycut=0.5):
          print("XMIN and XMAX are too close!")
          h1.Print("All")
 
+    if (xmax>12000): return 9000;
+
     return xmax
 
 
@@ -146,46 +148,51 @@ def get_input(hist,fit_min,fit_max):
     nbins = hist.GetNbinsX()
     hist_y = np.array([hist.GetBinContent(i) for i in range(1, nbins + 1)])
     hist_x = np.array([hist.GetBinLowEdge(i) for i in range(1, nbins + 2)])
-    #print('Initial bins:', hist_y.size)
+    print('Initial bins:', hist_y.size)
 
     fit_range = (0,0)
     fit_range = (fit_min, fit_max)
-    #print("fmin=",fit_min," fmax=",fit_max);
+    print("fmin=",fit_min," fmax=",fit_max);
 
     hist_y = hist_y[(hist_x[:-1] >= fit_range[0]) & (hist_x[1:] <= fit_range[1])]
     hist_x = hist_x[(hist_x >= fit_range[0]) & (hist_x <= fit_range[1])]
     data_x_center = (hist_x[1:] + hist_x[:-1])/2
     data_bin_width = hist_x[1:] - hist_x[:-1]
-    #print('Fit bins:', hist_y.size)
-    data_y = np.repeat(data_x_center, hist_y.astype(int))
-    #print('Obs data yields:', data_y.shape[0])
+    print('Fit bins:', hist_y.size)
+    #data_y = np.repeat(data_x_center, hist_y.astype(int))
+    data_y =hist_y
+    print('Obs data yields:', data_y.shape[0])
     return data_x_center, data_bin_width, data_y, hist_x
 
 
-# Generate a sample of background points given a histogram and bins
 def construct_bkg_sample(bkg_y_value, bkg_x_center, integral=None):
-    '''
-    bkg_y_value:
-        background histogram (bin contents)
-    bkg_x_center:
-        bin center, bkg_x_center.size = bkg_x_center.size
-    integral_data:
-        yields to scale to (can scale to data yields?)
-    '''
+    """
+    Return histogram centers with corresponding weights, without expanding.
 
-    # First generate points for each bkg bin to be bin content
-    bkg_y_discrete = np.round(bkg_y_value * 0.1).astype(int)
-    bkg_y_discrete[bkg_y_discrete == 0] = 1
-    bkg_sample = np.repeat(bkg_x_center, bkg_y_discrete)
+    Parameters
+    ----------
+    bkg_y_value : array-like
+        Histogram bin contents
+    bkg_x_center : array-like
+        Bin centers
+    integral : float or None
+        Optional target total integral
 
-    # Scale to functional yields from discreted yields
-    scale_bkg_discrete = bkg_y_value / bkg_y_discrete
-    weights = np.repeat(scale_bkg_discrete, bkg_y_discrete)
+    Returns
+    -------
+    x : ndarray
+        Bin centers
+    weights : ndarray
+        Bin weights
+    """
+    x = np.asarray(bkg_x_center, dtype=float)
+    weights = np.asarray(bkg_y_value, dtype=float)
 
-    # Scale to integral, for properly computed p1 parameter, scaling is not expected
     if integral is not None:
-        weights *= integral / np.sum(weights)
+        s = weights.sum()
+        if s > 0:
+            weights = weights * (integral / s)
     else:
-        print('Skip global scaling')
-    return bkg_sample, weights
+        print("Skip global scaling")
 
+    return x, weights

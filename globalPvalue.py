@@ -386,7 +386,7 @@ for event in range(MaxEvents):
 
             sign=0;
             sign_center=0
-            XmaxVal=getMaxNonzero(hback,XMIN,1.0)
+            XmaxVal=getMaxNonzero(hback,XMIN,2.0)
             print("XMIN=",XMIN, " XMAX=",XmaxVal) 
             # get NuPy arrays
             data_x_center, data_bin_width, data_y, hist_x = get_input(hback,fit_min=XMIN,fit_max=XmaxVal)
@@ -401,22 +401,22 @@ for event in range(MaxEvents):
             bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
 
             # Do not use it for now..
-            p1_alt=parameters_alt[0]
-            p2_alt=parameters_alt[1]
-            p3_alt=parameters_alt[2]
-            p4_alt=parameters_alt[3]
-            p5_alt=parameters_alt[4]
-            bkg_function_alt =FiveParam_alt(cms, bkg_x_center, p1_alt, p2_alt, p3_alt, p4_alt, p5_alt)
-            bkg_sample_alt, weight_alt = construct_bkg_sample(bkg_function_alt, bkg_x_center, integral_data)
+            #p1_alt=parameters_alt[0]
+            #p2_alt=parameters_alt[1]
+            #p3_alt=parameters_alt[2]
+            #p4_alt=parameters_alt[3]
+            #p5_alt=parameters_alt[4]
+            #bkg_function_alt =FiveParam_alt(cms, bkg_x_center, p1_alt, p2_alt, p3_alt, p4_alt, p5_alt)
+            #bkg_sample_alt, weight_alt = construct_bkg_sample(bkg_function_alt, bkg_x_center, integral_data)
 
             
             ## Construct BumpHunter and weights and alternatiev fuctions (local for Jet+X) 
             # hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
             # Default from GIT. Just se 1 psedo-experiment since intrested in local significance 
-            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=20, width_step=1, scan_step=1, npe=1, seed=666, bins=hist_x, weights=weight_nom)
+            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=20, width_step=1, scan_step=1, npe=0, seed=666, bins=hist_x, weights=weight_nom)
             ## Bump Scan with systematics ...
             ##hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
-            hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, do_pseudo = True)
+            hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, is_hist=True, do_pseudo = False)
 
             # local_pvalue = hunter.min_Pval_ar  # Array of minimum p-values from pseudo-experiments
             # The observed local p-value for the most significant bump
