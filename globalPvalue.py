@@ -1,3 +1,12 @@
+import sys
+sys.path.append("./pyBumpHunter/")
+
+
+# import numpy as np
+# import pyBumpHunter as BH
+
+from globalAux import * 
+
 from math import log
 import math,os,sys,json
 import ROOT
@@ -59,71 +68,8 @@ ExpectedLocalZvalue=5
 print("Expected local significance Z=",ExpectedLocalZvalue," sigma")
 
 
-def p_to_z_value (p, excess) :
-  """the function normal_quantile converts a p-value into a significance,
-  i.e. the number of standard deviations corresponding to the right-tail of 
-  a Gaussian"""
-  if excess :
-    zval = ROOT.Math.normal_quantile(1-p,1);
-  else :
-    zval = ROOT.Math.normal_quantile(p,1);
-  return zval
-
-
-def z_to_p_value(z_value):
-    """
-    Converts a Z-score to a one-sided p-value using ROOT::Math.
-    """
-    # normal_cdf_c(z, sigma=1, x0=0) computes 1 - Phi(z) directly
-    p_value = ROOT.Math.normal_cdf_c(z_value)
-    return p_value
-
-
-#“Asimov” (profile likelihood) significance (recommended)
-# when S<<D
-# Often used in HEP; behaves better, especially when SS is not ≪D≪D:
-def asimov_significance(S, D):
-    """
-    Asimov (profile likelihood) significance for counting experiment:
-        Z = sqrt( 2 * [ (S + D) * ln(1 + S/D) - S ] )
-
-    S: expected signal (>= 0)
-    D: expected background (> 0)
-    returns: Z in "sigma" units (float)
-    """
-    S = float(S)
-    D = float(D)
-
-    if S < 0:
-        raise ValueError("S must be >= 0")
-    if D <= 0:
-        raise ValueError("D must be > 0")
-
-    z2 = 2.0 * ((S + D) * math.log1p(S / D) - S)  # log1p(x) = ln(1+x)
-    if z2 < 0:  # guard against tiny negative due to rounding
-        z2 = 0.0
-    return math.sqrt(z2)
-
-
-
-# get maximum X of a histogram 
-def getMaxHistoX(h1, xmin):
-    xaxis = h1.GetXaxis()
-    Ntot = xaxis.GetNbins()+1
-    xmax=0
-    for i in range(Ntot):
-        y1 = h1.GetBinContent(i+1)
-        x1 = h1.GetBinCenter(i+1)
-        if (y1 < xmin):
-             xmax= x1
-             break
-    return xmax 
-
-
-
 
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
-
 
 
 # Make Bin=30 to fluctuate by 500 events for debugging!
@@ -168,37 +114,6 @@ def trigger_settings(trig_type: int) -> tuple[int, str]:
     }
     return settings.get(trig_type, (300, "1 lep"))
 
-
-
-# -----------------------------
-# ROOT fit background templates extraced from 1% of data 
-# -----------------------------
-class FiveParam2015:
-    """Standard P5 background function."""
-
-    def __call__(self, x, par):
-        ecm = 13000.0
-        xx = x[0] / ecm
-
-        ff1 = par[0] * TMath.Power((1.0 - xx), par[1])
-        ff2 = TMath.Power(xx, (par[2] + par[3] * log(xx) + par[4] * log(xx) * log(xx)))
-        return ff1 * ff2
-
-
-class FiveParam2015Gauss:
-    """P5 background + Gaussian peak."""
-
-    def __call__(self, x, par):
-        ecm = 13000.0
-        xx = x[0] / ecm
-
-        ff1 = par[0] * TMath.Power((1.0 - xx), par[1])
-        ff2 = TMath.Power(xx, (par[2] + par[3] * log(xx) + par[4] * log(xx) * log(xx)))
-        background = ff1 * ff2
-
-        sigma = par[7]
-        gauss = par[5] * TMath.Gaus(xx, par[6], sigma) if sigma > 0 else 0.0
-        return background + gauss
 
 # -----------------------------
 # Main loop to create backgrond function and make random histograms 
@@ -251,7 +166,7 @@ for event in range(MaxEvents):
             # get saved paramters
             fitfile = f"fits/fitme_p5_t{TRIG_TYPE}_{channel}.json"
             if fitfile not in mypar: continue
-            data=mypar[fitfile]
+            data_fit=mypar[fitfile]
             fit_min, fit_max = XMIN, XMAX
             # Background-only TF1 (5 params)
             name = f"{TRIG_TYPE}_{channel}"
@@ -262,13 +177,13 @@ for event in range(MaxEvents):
             mbacksig=FiveParam2015Gauss()
             backsig = TF1(f"sig_{name}", mbacksig, fit_min, fit_max, 8)
 
-            parameters = data["parameters"]
-            nom_func = data["name"]
-            errors = data["errors"]
-            ndf = int(data["ndf"])
-            chi2 = float(data["chi2"])
-            fit_min = float(data["fmin"])
-            fit_max = float(data["fmax"])
+            parameters = data_fit["parameters"]
+            nom_func = data_fit["name"]
+            errors = data_fit["errors"]
+            ndf = int(data_fit["ndf"])
+            chi2 = float(data_fit["chi2"])
+            fit_min = float(data_fit["fmin"])
+            fit_max = float(data_fit["fmax"])
 
             """
             chi2_ndf = chi2 / ndf if ndf else float("inf")
@@ -456,11 +371,32 @@ for event in range(MaxEvents):
 
             Ntot=Ntot+1
 
-            ## Let's mimic BumpHunt for now. Find residuals from the fit and just look at significance of a single bin
-            ## Note: Real BumpHunt also adds adjusted bins
             sign=0;
+            sign_center=0
             XmaxVal=getMaxHistoX(hback,1)
+
+            # get NuPy arrays
+            data_x_center, data_bin_width, data_y, hist_x = get_input(hback,fit_min=XMIN,fit_max=XmaxVal)
+            bkg_x_center = data_x_center
+            p1=parameters[0]
+            p2=parameters[1]
+            p3=parameters[2]
+            p4=parameters[3]
+            p5=parameters[4]
+            cms=13000
+            integral_data = None
+            bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
+            bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
+
+            ## Construct BumpHunter and weights
+            #hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=10000, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
+            ## Bump Scan
+            #hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = (not args.syst))
+
+
+            ## Let's mimic BumpHunt for now. Find residuals from the fit and just look at significance of a single bin
             #print("XmaxVal=",XmaxVal)
+            """
             for i in range(hback.GetNbinsX() - 1):
                 center = hback.GetBinCenter(i + 1)
                 if (center<XMIN or center>XmaxVal): continue
@@ -474,7 +410,7 @@ for event in range(MaxEvents):
                 if (significance>sign): 
                                 sign=significance;
                                 sign_center=center
-
+             """
             if sign>ExpectedLocalZvalue:
                     BumpFound=True 
                     print("Bump with significance=","{:.1f}".format(sign)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
@@ -587,3 +523,4 @@ c1.Update()
 if (myinput != "-b"):
               if (input("Press any key to exit") != "-9999"):
                          c1.Close(); sys.exit(1);
+
