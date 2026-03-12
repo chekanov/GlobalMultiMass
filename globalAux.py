@@ -1,4 +1,5 @@
 # Some useful functions..
+# S.Chekanov (ANL)
 
 import numpy as np
 
@@ -9,17 +10,17 @@ from ROOT import TCanvas, TPostScript, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
 import uproot as upr  ## Used to read data from a root file
 
-
-# get maximum X of a histogram
-def getMaxHistoX(h1, xmin):
+def getMaxNonzero(h1,xmin, ycut=0.5):
     xaxis = h1.GetXaxis()
     Ntot = xaxis.GetNbins()+1
-    xmax=0
+    xmax=xmin 
     for i in range(Ntot):
         y1 = h1.GetBinContent(i+1)
         x1 = h1.GetBinCenter(i+1)
-        if (y1 < xmin):
-             xmax= x1
+        err=h1.GetBinWidth(i)
+        if ((x1-err)<xmin): continue
+        if (y1 < ycut):
+             xmax= xaxis.GetBinUpEdge(i) 
              break
     return xmax
 
@@ -113,8 +114,8 @@ class FiveParam2015Gauss:
 #
 # [Fit results](https://gitlab.cern.ch/dijetpluslepton/anomalydetection/ana/-/blob/master/figs_bh/ARpval_t2.txt?ref_type=heads#L8)
 def FiveParam(Ecm, x_center, p1, p2, p3, p4, p5, bumphunter_implementation=False):
-    print("BumpHunter implementation=",bumphunter_implementation)
-    print('Use p5 with:',Ecm, p1, p2, p3, p4, p5)
+    #print("BumpHunter implementation=",bumphunter_implementation)
+    #print('Use p5 with:',Ecm, p1, p2, p3, p4, p5)
     x = x_center / Ecm
     nlog=np.log(x)
     if bumphunter_implementation:
@@ -124,7 +125,7 @@ def FiveParam(Ecm, x_center, p1, p2, p3, p4, p5, bumphunter_implementation=False
     return fun
 
 def FiveParam_alt(Ecm, x_center, p1, p2, p3, p4, p5):
-    print('Use p5_alt with:',Ecm, p1, p2, p3, p4, p5)
+    #print('Use p5_alt with:',Ecm, p1, p2, p3, p4, p5)
     x = x_center / Ecm
     nlog=np.log(x)
     fun = p1 * np.power((1.0 - x), p2) * np.power(x, (p3 + p4 * nlog + p5 / np.sqrt(x)))
@@ -138,19 +139,19 @@ def get_input(hist,fit_min,fit_max):
     nbins = hist.GetNbinsX()
     hist_y = np.array([hist.GetBinContent(i) for i in range(1, nbins + 1)])
     hist_x = np.array([hist.GetBinLowEdge(i) for i in range(1, nbins + 2)])
-    print('Initial bins:', hist_y.size)
+    #print('Initial bins:', hist_y.size)
 
     fit_range = (0,0)
     fit_range = (fit_min, fit_max)
-    print("fmin=",fit_min," fmax=",fit_max);
+    #print("fmin=",fit_min," fmax=",fit_max);
 
     hist_y = hist_y[(hist_x[:-1] >= fit_range[0]) & (hist_x[1:] <= fit_range[1])]
     hist_x = hist_x[(hist_x >= fit_range[0]) & (hist_x <= fit_range[1])]
     data_x_center = (hist_x[1:] + hist_x[:-1])/2
     data_bin_width = hist_x[1:] - hist_x[:-1]
-    print('Fit bins:', hist_y.size)
+    #print('Fit bins:', hist_y.size)
     data_y = np.repeat(data_x_center, hist_y.astype(int))
-    print('Obs data yields:', data_y.shape[0])
+    #print('Obs data yields:', data_y.shape[0])
     return data_x_center, data_bin_width, data_y, hist_x
 
 

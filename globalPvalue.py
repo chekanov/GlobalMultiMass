@@ -69,12 +69,10 @@ print("The number of pseudo-experiments=",MaxEvents)
 
 ## Expected local significance as in BumpHunter
 ExpectedLocalZvalue=5  
-print("Expected local significance Z=",ExpectedLocalZvalue," sigma")
-
-
-
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
 
+# CM energy for fit functions
+cms=13000.
 
 # Make Bin=30 to fluctuate by 500 events for debugging!
 # Comment this out to remove this fluctuation
@@ -388,8 +386,8 @@ for event in range(MaxEvents):
 
             sign=0;
             sign_center=0
-            XmaxVal=getMaxHistoX(hback,1)
-
+            XmaxVal=getMaxNonzero(hback,XMIN,1.0)
+            print("XMIN=",XMIN, " XMAX=",XmaxVal) 
             # get NuPy arrays
             data_x_center, data_bin_width, data_y, hist_x = get_input(hback,fit_min=XMIN,fit_max=XmaxVal)
             bkg_x_center = data_x_center
@@ -398,7 +396,6 @@ for event in range(MaxEvents):
             p3=parameters[2]
             p4=parameters[3]
             p5=parameters[4]
-            cms=13000. 
             integral_data = None
             bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
             bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
@@ -413,17 +410,44 @@ for event in range(MaxEvents):
             bkg_sample_alt, weight_alt = construct_bkg_sample(bkg_function_alt, bkg_x_center, integral_data)
 
             
-            ## Construct BumpHunter and weights
+            ## Construct BumpHunter and weights and alternatiev fuctions (local for Jet+X) 
             # hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
-            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom)
+            # Default from GIT. Just se 1 psedo-experiment since intrested in local significance 
+            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=20, width_step=1, scan_step=1, npe=1, seed=666, bins=hist_x, weights=weight_nom)
             ## Bump Scan with systematics ...
             ##hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
             hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, do_pseudo = True)
 
+            # local_pvalue = hunter.min_Pval_ar  # Array of minimum p-values from pseudo-experiments
+            # The observed local p-value for the most significant bump
+            #observed_local_pvalue = hunter.min_Pval_data
+            #print(observed_local_pvalue)
+            # print([attr for attr in dir(hunter) if not attr.startswith('_')])
+            # Local p-value (per scan window)
+            # print(hunter.signal_eval)  # Array of local p-values for each scan window
+
+            # Print all results
+            # hunter.print_bump_info()
+            sign_center=0;
+            # local significance ? 
+            local_p = hunter.min_Pval_ar[0]
+            Zval=0
+            if (local_p>0 and local_p<1):
+                         Zval=ROOT.RooStats.PValueToSignificance(local_p)
+            # also use p_back = ROOT.RooStats.SignificanceToPValue(Z)
+            #print("Local significance=",local_sign)
+            #print("bumploc =", getattr(hunter, "bumploc", None))
+            #print("bumpwidth =", getattr(hunter, "bumpwidth", None))
+            #print("Local p-value:", hunter.min_Pval)
+            #print(hunter.__dict__.keys())
+            # Inspect all non-private attributes to find p-value fields
+            #results_attrs = {attr: getattr(hunter, attr) for attr in dir(hunter)
+            #       if not attr.startswith('_') and not callable(getattr(hunter, attr))}
+            #for k, v in results_attrs.items():
+            #       print(f"{k}: {v}")
             # Print bump
             #state=hunter.save_state()
-            #print(state)
-
+            #print(state["min_Pval_ar"])
             #local_p_value = hunter.p_val
             ## where local significance??
             ## save 
@@ -434,15 +458,10 @@ for event in range(MaxEvents):
             #result.append(state["significance"])
             #print("Result=",result) 
 
-            #print(vars(hunter))
-            #print(hunter.min_pval)        # smallest local p-value found in the scan
-            #print(hunter.min_loc_ar)      # location/range of the bump
-            #print(hunter.signal_eval)     # estimated signal excess in the bump window
 
-
+            """
             ## Let's mimic BumpHunt for now. Find residuals from the fit and just look at significance of a single bin
             #print("XmaxVal=",XmaxVal)
-            """
             for i in range(hback.GetNbinsX() - 1):
                 center = hback.GetBinCenter(i + 1)
                 if (center<XMIN or center>XmaxVal): continue
@@ -457,9 +476,11 @@ for event in range(MaxEvents):
                                 sign=significance;
                                 sign_center=center
              """
-            if sign>ExpectedLocalZvalue:
+            if Zval>ExpectedLocalZvalue:
                     BumpFound=True 
-                    print("Bump with significance=","{:.1f}".format(sign)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
+                    print("Bump with significance=","{:.1f}".format(Zval)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
+                    hunter.bump_info(data_y)
+
     if (BumpFound): NrFound= NrFound+1
 
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
