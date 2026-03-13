@@ -10,7 +10,7 @@ ExpectedLocalZvalue=6
 
 # Maximum pseudo-experiments for global p-value
 # for 6 sigma Z (local), set to maximum value to  a large number
-MaxEvents=200
+MaxEvents=20
 
 
 # Do not process histograms with less than 50 entries 
@@ -51,7 +51,7 @@ import pyBumpHunter as BH
 from math import log
 import math,os,json
 import ROOT
-from ROOT import TCanvas, TPostScript, TLegend, gPad, TF1, TRandom3, TH1D, TMath
+from ROOT import TCanvas, TPostScript, TFile, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
 
 myinput="interactive"
@@ -147,6 +147,8 @@ Histograms_fromJJ={}
 # use it for debug
 # CHANNELS=["jj"]
 
+# collect bumps for further analysois
+BumpCollector=[] 
 
 # Just count histograms..
 Ntot=0
@@ -493,7 +495,9 @@ for event in range(MaxEvents):
                     BumpFound=True 
                     print("Bump with local Z=","{:.1f}".format(Zval)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
                     print(hunter.bump_info(data_y))
-
+                    # collect bumps for visual inspection 
+                    Bump=[hback,back]
+                    BumpCollector.append(Bump)
     if (BumpFound): NrFound= NrFound+1
 
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
@@ -594,6 +598,27 @@ leg2.AddEntry(hhD1,"Expected from "+str(channel),"lp")
 leg2.AddEntry(hhJJ,"JJ distribution","lp")
 leg2.Draw("same");
 hhD.Draw("pe same")
+
+
+# write into file
+rootfile="figs/bumps.root"
+hfile=TFile(rootfile,"RECREATE","signatures")
+for bum  in range(len( BumpCollector ) ):
+    peak=BumpCollector[bum]
+
+    hhh=peak[0].GetTitle()
+    fun=peak[1].GetTitle()
+   
+    peak[0].SetTitle(peak[0].GetTitle()+"_bump"+str(bum))
+    peak[0].SetName(peak[0].GetName()+"_bump"+str(bum))
+   
+    peak[1].SetTitle(peak[1].GetTitle()+"_bump"+str(bum))
+    peak[1].SetName(peak[1].GetName()+"_bump"+str(bum))
+
+    peak[0].Write()
+    peak[1].Write()
+hfile.Close()
+print("Write ",rootfile, " with bumps above Z=",ExpectedLocalZvalue)
 
 
 # only for debugging.. Make it fluctuate 
