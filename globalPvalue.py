@@ -5,19 +5,18 @@
 
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=5
+ExpectedLocalZvalue=7
 
 
 # Maximum pseudo-experiments for global p-value
 # for 6 sigma Z (local), set to maximum value to  a large number
-MaxEvents=100
-
+MaxEvents=1000
 
 # Do not process histograms with less than 50 entries 
 MinEntries = 50
 
 # if you do not want overlap, set to True:
-noOverlap=False 
+noOverlap=True 
 
 # Make Bin=30 to fluctuate by 500 events for debugging!
 # Comment this out to remove this test fluctuation
@@ -43,6 +42,34 @@ PLOT_CHANNEL="jb"
 ############# END USER SETTING ######################
 
 
+import argparse
+# ----------------- Command line argument parser -----------------
+parser = argparse.ArgumentParser(description="Run multiple pseudo-experiments for jet+X masses.")
+
+parser.add_argument("--ExpectedLocalZvalue", type=float, default=ExpectedLocalZvalue,
+                    help="Expected local significance as in BumpHunter (default: 7)")
+
+parser.add_argument("--MaxEvents", type=int, default=MaxEvents,
+                    help="Maximum pseudo-experiments for global p-value (default: 1000)")
+
+parser.add_argument("--MinEntries", type=int, default=MinEntries,
+                    help="Do not process histograms with less than this many entries (default: 50)")
+
+parser.add_argument("--noOverlap", type=lambda x: (str(x).lower() == 'true'), default=noOverlap,
+                    help="Set to True to avoid overlap, False otherwise (default: True)")
+
+parser.add_argument("--interactive", type=lambda x: (str(x).lower() == 'true'), default=True,
+                    help="Set to True to show interactive canvas (default: True)")
+
+args = parser.parse_args()
+
+# ----------------- Use arguments in your code -----------------
+ExpectedLocalZvalue = args.ExpectedLocalZvalue
+MaxEvents = args.MaxEvents
+MinEntries = args.MinEntries
+noOverlap = args.noOverlap
+isInteractive=args.interactive
+
 ########### DO NOT CHANGE ANYTHING BELOW ############
 
 import sys
@@ -59,11 +86,6 @@ import math,os,json
 import ROOT
 from ROOT import TCanvas, TVectorD, TPostScript, TFile, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
-
-myinput="interactive"
-# trigger type
-if (len(sys.argv) ==2):
-   myinput =sys.argv[1]
 
 # -----------------------------
 # Configuration
@@ -103,9 +125,12 @@ if (noOverlap==False):
 else:
           print("Running without overlaps")  
 
+print("############## START ################")
 print("The number of pseudo-experiments=",MaxEvents)
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
 print("Min number of entries=",MinEntries)
+print("Is interactive mode=",isInteractive)
+
 
 # some default  min and max values X, Y ranges
 XMAX = 9000
@@ -160,7 +185,7 @@ BumpCollector=[]
 Ntot=0
 
 ## fill from the files parameters
-print("Read all paramters from JSON") 
+print("\nRead all paramters from JSON") 
 mypar={}
 mypar_alt={}
 for TRIG_TYPE in range(1, 8):
@@ -178,7 +203,7 @@ for TRIG_TYPE in range(1, 8):
                data_alt = json.load(jfile)
                mypar_alt[fitfile] = data_alt 
 
-print("Loop over events",MaxEvents)
+print("\n#######Loop over events",MaxEvents)
 for event in range(MaxEvents):
 
     BumpFound=False # so far no bump found for this run
@@ -392,8 +417,9 @@ for event in range(MaxEvents):
             ChiMax=2.0
             if (fitAgain):
                       print("Perform background fit again Event=",event, " T=",TRIG_TYPE, " ch=",channel)
-                      fitr=hback.Fit(backFIT,"ISMR0")
-                      chi2ndf=backFIT.GetChisquare()/backFIT.GetNDF()
+                      fitr=hback.Fit(backFIT,"ISMRQ0")
+                      chi2ndf=100
+                      if (backFIT.GetNDF()>0): chi2ndf=backFIT.GetChisquare()/backFIT.GetNDF()
                       if (fitr.IsValid()==False or chi2ndf>ChiMax):
                          continue
                       else:
@@ -667,7 +693,7 @@ print (epsfig)
 ps1.Close()
 
 c1.Update()
-if (myinput != "-b"):
+if (isInteractive):
               if (input("Press any key to exit") != "-9999"):
                          c1.Close(); sys.exit(1);
 
