@@ -29,6 +29,16 @@ To run the analysis:
 source setup.sh # Only if needed! 
 python globalPvalue.py
 ```
+If you use the command line arguments, use this: 
+
+```bash
+source setup.sh # Only if needed!
+python globalPvalue.py --ExpectedLocalZvalue 5 --MaxEvents 10000  --noOverlap false
+```
+
+which runs 10000 pseudo-experiments with 9 invariant masses in 7 independent triggers, to estimate the 
+global significance for the expected Z=5 sigma (local) from BumpHunter in any of the pseudo-experiment (and any distribution). 
+
 
 The file with most significant bumps is stored in "figs/bumps.root". Use the  showBumps.py to plot them for debugging.
 
