@@ -33,10 +33,10 @@ python globalPvalue.py
 The file with most significant bumps is stored in "figs/bumps.root". Use the  showBumps.py to plot them for debugging.
 
 
-## Current Configuration
+## Configuration
 
-- The code currently generates **one pseudo-experiment**.
-- A total of **63 templates** are used in the calculation.
+You can configure all input values at the beginning of the script **globalPvalue.py**. Make sure you run a sufficient number of experiments to address the 6 - 7  sigma requirement for local statistical deviation.
+ 
 
 ## Additional Details
 
