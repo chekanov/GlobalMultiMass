@@ -5,7 +5,7 @@
 
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=6 
+ExpectedLocalZvalue=5
 
 
 # Maximum pseudo-experiments for global p-value
@@ -20,14 +20,14 @@ MinEntries = 50
 noOverlap=False 
 
 # Make Bin=30 to fluctuate by 500 events for debugging!
-# Comment this out to remove this fluctuation
+# Comment this out to remove this test fluctuation
 FluctuateBin={}
 # FluctuateBin={30: 500}
 
 
 # Do you want also re-fit template with the same function?
-# This will be much slower, but should not lead to large change.
-fitAgain=False
+# This will be much slower, use it for the production mode.
+fitAgain=True 
 
 
 # CM energy for fit functions
@@ -184,7 +184,7 @@ for event in range(MaxEvents):
     BumpFound=False # so far no bump found for this run
 
 
-    if (event %1000 == 0 ): print("Event=",event)
+    if (event %20 == 0 ): print("Pseudo Event=",event)
 
     # loop over 7 triggers
     for TRIG_TYPE in range(1, 8):
@@ -388,9 +388,17 @@ for event in range(MaxEvents):
                     hback1.SetBinError(i + 1, 0)
 
             # this will be slower, but could be more precise...
+            backFIT=back.Clone()
+            ChiMax=2.0
             if (fitAgain):
-                      fitr=hback.Fit(back,"ISMR0")
-
+                      print("Perform background fit again Event=",event, " T=",TRIG_TYPE, " ch=",channel)
+                      fitr=hback.Fit(backFIT,"ISMR0")
+                      chi2ndf=backFIT.GetChisquare()/backFIT.GetNDF()
+                      if (fitr.IsValid()==False or chi2ndf>ChiMax):
+                         continue
+                      else:
+                         back=backFIT.Clone()
+                         print("New fit was accepted with ",chi2ndf)
 
             # collect histograms
             BackgroudFunction[hback_name] = back  
@@ -423,16 +431,17 @@ for event in range(MaxEvents):
             fit_max_x=fit_max-fit_max*0.15
             data_x_center, data_bin_width, data_y, hist_x = get_input(hback,fit_min=fit_min,fit_max=fit_max)
             bkg_x_center = data_x_center
-            p1=parameters[0]
-            p2=parameters[1]
-            p3=parameters[2]
-            p4=parameters[3]
-            p5=parameters[4]
-            integral_data = None
+            #p1=parameters[0]
+            #p2=parameters[1]
+            #p3=parameters[2]
+            #p4=parameters[3]
+            #p5=parameters[4]
+            #integral_data = None
             #bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
             #bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
             #bkg_sample_nom=bkg_function_nom
 
+            # convert  ROOT background to NumPy array
             bkg_sample_nom=tf1_to_numpy(bkg_x_center, back)
            
             # Do not use it for now..
