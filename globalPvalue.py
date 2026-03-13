@@ -57,7 +57,7 @@ import pyBumpHunter as BH
 from math import log
 import math,os,json
 import ROOT
-from ROOT import TCanvas, TPostScript, TFile, TLegend, gPad, TF1, TRandom3, TH1D, TMath
+from ROOT import TCanvas, TVectorD, TPostScript, TFile, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
 
 myinput="interactive"
@@ -448,7 +448,7 @@ for event in range(MaxEvents):
             ## Construct BumpHunter and weights and alternatiev fuctions (local for Jet+X) 
             # hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=None, width_step=1, scan_step=1, npe=100, seed=666, bins=hist_x, weights=weight_nom, weights_alt=weight_alt)
             # Default from GIT. Just se 1 psedo-experiment since intrested in local significance 
-            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=30, width_step=1, scan_step=1, npe=0, seed=666, bins=hist_x)
+            hunter = BH.BumpHunter1D( rang=None, width_min=2, width_max=30, width_step=1, scan_step=1, npe=10, seed=666, bins=hist_x)
             ## Bump Scan with systematics from Jet+X analysis 
             ##hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, bkg_alt = bkg_sample_alt, do_pseudo = True, stat_only = True)
             hunter.bump_scan( data = data_y, bkg = bkg_sample_nom, is_hist=True, do_pseudo = False)
@@ -517,7 +517,7 @@ for event in range(MaxEvents):
                     print("Best width:", x2-x1)
                     print("Record bump=",hback.GetTitle()) 
                     # collect bumps for visual inspection 
-                    Bump=[hback,back, [x1, x2] ]
+                    Bump=[hback,back, [x1, x2, Zval] ]
                     BumpCollector.append(Bump)
     if (BumpFound): NrFound= NrFound+1
 
@@ -638,6 +638,14 @@ for bum  in range(len( BumpCollector ) ):
 
     peak[0].Write()
     peak[1].Write()
+
+    xpeaks=peak[2]
+    arr = ROOT.TVectorD(3) # xmin, xmax, Zval  
+    arr[0] = xpeaks[0]
+    arr[1] = xpeaks[1]
+    arr[2] = xpeaks[2]
+    arr.Write("bump"+str(bum));
+
 hfile.Close()
 print("Write ",rootfile, " with bumps above Z=",ExpectedLocalZvalue)
 

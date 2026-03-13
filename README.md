@@ -1,13 +1,19 @@
-# Calculation of Global Significance for Jet+X Analysis Using Overlapping PF Events
+# Calculation of Global Significance for Jet+X Analysis Using Event Overlaps
 
-This repository contains code to compute the **global p-value (global significance)** for the Jet+X analysis using overlapping particle-flow (PF) events.
+This repository contains code to compute the global p-value (global significance) for the Jet+X analysis using multiple invariant mass distributions, including the possibility of event overlap between masses.
 
-The code reads functional templates from fits and then runs multiple pseudo-experiments. In each pseudo-experiment, 63 histograms are randomly generated from the analytic functions. It then runs pyBumpHunter to search for significant bumps above a specified significance threshold Z. Next, it counts how many pseudo-experiments contain such significant bumps. Finally, it computes the corresponding statistical significances.
+The code reads functional templates obtained from fits and performs multiple pseudo-experiments. In each pseudo-experiment, 63 histograms are randomly generated from the analytic functions. These histograms are organized into 9 different invariant masses across 7 independent trigger streams.
+
+To better reproduce the behavior observed in real data, overlaps between invariant mass distributions within a given trigger stream can be introduced using the correlations observed in data. An alternative background hypothesis can also be enabled.
+
+Once the random templates are generated for a pseudo-experiment, the code runs pyBumpHunter to search for statistically significant bumps above a specified local significance threshold Z. It then counts how many pseudo-experiments contain such significant local excesses.
+
+Finally, using the fraction of pseudo-experiments that produce at least one significant bump, the code estimates the probability of observing such an excess under the background-only hypothesis, thereby determining the corresponding global p-value (or global Z-value).
 
 
 ## Running the Code
 
-First, copy https://github.com/scikit-hep/pyBumpHunter to the exteranal directory, and install it.
+First, copy https://github.com/scikit-hep/pyBumpHunter to the external directory, and install it.
 
 ```bash
 git clone https://github.com/scikit-hep/pyBumpHunter.git

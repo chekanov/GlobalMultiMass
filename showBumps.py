@@ -44,9 +44,13 @@ hfile=TFile(rootfile)
 hfile.ls()
 
 
-
 hname="histo_4_jg_bump0"
 bnam="back_4_jg_bump0"
+v = hfile.Get("bump0")
+x1=v[0]
+x2=v[1]
+Zval=v[2]
+
 
 chanks=hname.split("_")
 TRIG_TYPE=int(chanks[1])
@@ -85,6 +89,22 @@ hhBak.Draw("l same")
 hhD.GetXaxis().SetTitle( "Mass [GeV]" );
 hhD.GetYaxis().SetTitle( "Pseudo Events" );
 
+
+ymin=0
+ymax=100
+line1 = ROOT.TLine(x1, ymin, x1, ymax)
+line1.SetLineColor(ROOT.kRed)
+line1.SetLineWidth(2)
+line1.SetLineStyle(2)  # dashed
+line1.Draw()
+
+line2 = ROOT.TLine(x2, ymin, x2, ymax)
+line2.SetLineColor(ROOT.kRed)
+line2.SetLineWidth(2)
+line2.SetLineStyle(2)  # dashed
+line2.Draw()
+
+
 leg2=TLegend(0.5, 0.55, 0.89, 0.84);
 leg2.SetBorderSize(0);
 leg2.SetTextFont(62);
@@ -95,6 +115,8 @@ leg2.AddEntry(hhBak,"Fit template","lp")
 leg2.AddEntry(hhD,"Obtained sample","lp")
 leg2.Draw("same");
 hhD.Draw("pe same")
+
+print("ZValue=",Zval)
 
 print (epsfig)
 ps1.Close()
