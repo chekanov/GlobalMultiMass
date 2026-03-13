@@ -10,7 +10,7 @@ ExpectedLocalZvalue=6
 
 # Maximum pseudo-experiments for global p-value
 # for 6 sigma Z (local), set to maximum value to  a large number
-MaxEvents=20
+MaxEvents=100
 
 
 # Do not process histograms with less than 50 entries 
@@ -23,6 +23,12 @@ noOverlap=False
 # Comment this out to remove this fluctuation
 FluctuateBin={}
 # FluctuateBin={30: 500}
+
+
+# Do you want also re-fit template with the same function?
+# This will be much slower, but should not lead to large change.
+fitAgain=False
+
 
 # CM energy for fit functions
 cms=13000.
@@ -381,6 +387,9 @@ for event in range(MaxEvents):
                     hback1.SetBinContent(i + 1, 0)
                     hback1.SetBinError(i + 1, 0)
 
+            # this will be slower, but could be more precise...
+            if (fitAgain):
+                      fitr=hback.Fit(back,"ISMR0")
 
 
             # collect histograms
@@ -492,11 +501,23 @@ for event in range(MaxEvents):
             #print("Result=",result) 
 
             if Zval>ExpectedLocalZvalue:
-                    BumpFound=True 
+                    # find bump postion 
+                    x1,x2=0,0
+                    if hasattr(hunter, "min_loc_ar") and hasattr(hunter, "min_width_ar"):
+                       i = hunter.min_loc_ar[0] if np.ndim(hunter.min_loc_ar) else hunter.min_loc_ar
+                       w = hunter.min_width_ar[0] if np.ndim(hunter.min_width_ar) else hunter.min_width_ar
+                       # do not consider bumps at the tail 
+                       if ((i+w)>len(bkg_x_center)-1):  continue
+                       x1 = bkg_x_center[i]
+                       x2 = bkg_x_center[i + w]
+                    BumpFound=True
                     print("Bump with local Z=","{:.1f}".format(Zval)," and pos=",sign_center," chan=",channel," T=",TRIG_TYPE)
                     print(hunter.bump_info(data_y))
+                    print("Best interval:", x1, x2 )
+                    print("Best width:", x2-x1)
+                    print("Record bump=",hback.GetTitle()) 
                     # collect bumps for visual inspection 
-                    Bump=[hback,back]
+                    Bump=[hback,back, [x1, x2] ]
                     BumpCollector.append(Bump)
     if (BumpFound): NrFound= NrFound+1
 
