@@ -57,7 +57,3 @@ You can configure all input values at the beginning of the script **globalPvalue
 
 - Review the implementation in `globalPvalue.py` to understand how the pseudo-experiment and template handling are performed.
 - The number of pseudo-experiments and templates can be modified in the script if needed.
-
-# Calculation of Global Significance for Jet+X Analysis Using Overlapping PF Events
-
-This repository contains code to compute the **global p-value (global significance)** for the Jet+X analysis using overlapping particle-flow (PF) events.
