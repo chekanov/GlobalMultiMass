@@ -2,6 +2,9 @@
 
 This repository contains code to compute the **global p-value (global significance)** for the Jet+X analysis using overlapping particle-flow (PF) events.
 
+The code reads functional templates from fits and then runs multiple pseudo-experiments. In each pseudo-experiment, 63 histograms are randomly generated from the analytic functions. It then runs pyBumpHunter to search for significant bumps above a specified significance threshold Z. Next, it counts how many pseudo-experiments contain such significant bumps. Finally, it computes the corresponding statistical significances.
+
+
 ## Running the Code
 
 First, copy https://github.com/scikit-hep/pyBumpHunter to the exteranal directory, and install it.
@@ -20,6 +23,9 @@ To run the analysis:
 source setup.sh # Only if needed! 
 python globalPvalue.py
 ```
+
+The file with most significant bumps is stored in "figs/bumps.root". Use the  showBumps.py to plot them for debugging.
+
 
 ## Current Configuration
 
