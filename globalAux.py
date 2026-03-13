@@ -135,6 +135,15 @@ def FiveParam(Ecm, x_center, p1, p2, p3, p4, p5, bumphunter_implementation=False
         fun = p1 * np.power((1.0 - x), p2) * np.power(x, (p3 + p4 * nlog + p5 * nlog * nlog ))
     return fun
 
+
+def tf1_to_numpy(xvals, tf1):
+    """ Create NumPy array from TF1 function """
+    xvals = np.asarray(xvals, dtype=float)
+    return np.array([tf1.Eval(float(x)) for x in xvals], dtype=float)
+
+
+
+
 def FiveParam_alt(Ecm, x_center, p1, p2, p3, p4, p5):
     #print('Use p5_alt with:',Ecm, p1, p2, p3, p4, p5)
     x = x_center / Ecm

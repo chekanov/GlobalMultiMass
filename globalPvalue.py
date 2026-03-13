@@ -1,14 +1,51 @@
 # This code runs multiple pseudo-experiments for 63 jet+X masses.
 # You may adjust pyBumpHunter since it uses this package..
-import sys
 
+############### USER SETTING ######################
+
+
+## Expected local significance as in BumpHunter
+ExpectedLocalZvalue=6 
+
+
+# Maximum pseudo-experiments for global p-value
+# for 6 sigma Z (local), set to maximum value to  a large number
+MaxEvents=200
+
+
+# Do not process histograms with less than 50 entries 
+MinEntries = 50
+
+# if you do not want overlap, set to True:
+noOverlap=False 
+
+# Make Bin=30 to fluctuate by 500 events for debugging!
+# Comment this out to remove this fluctuation
+FluctuateBin={}
+# FluctuateBin={30: 500}
+
+# CM energy for fit functions
+cms=13000.
+
+
+# THIS IS FOR PLOTTING and debugging.. 
+# NOT REFLECTED ON P-Value 
+PLOT_TRIGGER_TYPE=2 
+PLOT_CHANNEL="jb"
+
+
+############# END USER SETTING ######################
+
+
+########### DO NOT CHANGE ANYTHING BELOW ############
+
+import sys
 sys.path.append("./pyBumpHunter/")
 # Old
 # sys.path.append("../pyBumpHunter/")
 
 # also import some functions...
 from globalAux import *
-
 import numpy as np
 import pyBumpHunter as BH
 from math import log
@@ -48,8 +85,6 @@ DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3,
                         4:DEFALT_OVERLAP4, 5:DEFALT_OVERLAP5, 6:DEFALT_OVERLAP6,7:DEFALT_OVERLAP7} 
 
 
-# if you do not want overlap, set to True:
-noOverlap=False
 if (noOverlap==True):
   print("No overlap requested")
   for d in DEFALT_OVERLAP_TRIGGER.values():
@@ -62,26 +97,15 @@ if (noOverlap==False):
 else:
           print("Running without overlaps")  
 
-# Maximum pseudo-experiments for global p-value
-# for 5 sigmal local, set to maximum value, like 10^6!
-MaxEvents=100
 print("The number of pseudo-experiments=",MaxEvents)
-
-## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=5  
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
-
-# CM energy for fit functions
-cms=13000.
-
-# Make Bin=30 to fluctuate by 500 events for debugging!
-# Comment this out to remove this fluctuation
-FluctuateBin={}
-# FluctuateBin={30: 500}
-
-# Do not process histograms with less than 50 entries 
-MinEntries = 50 
 print("Min number of entries=",MinEntries)
+
+# some default  min and max values X, Y ranges
+XMAX = 9000
+XMIN = 300
+YMIN = 0.81
+YMAX = 100000
 
 
 # default histogram Bins
@@ -93,15 +117,8 @@ mjjBins = array("d", mjjBinsL)
 r=TRandom3()
 
 
-# some X , and Y ranges 
-XMAX = 9000
-XMIN = 300
-YMIN = 0.81
-YMAX = 100000 
-
 # counter for significant events
 NrFound=0
-
 
 def trigger_settings(trig_type: int) -> tuple[int, str]:
     """Return (xmin, label) based on trigger type."""
@@ -389,6 +406,10 @@ for event in range(MaxEvents):
             #XmaxVal=getMaxNonzero(hback,XMIN,2.0)
             #print("XMIN=",XMIN, " XMAX=",XmaxVal) 
             # get NuPy arrays
+
+            ## make smaller by 2*sigma
+            fit_min_x=fit_min+fit_min*0.15
+            fit_max_x=fit_max-fit_max*0.15
             data_x_center, data_bin_width, data_y, hist_x = get_input(hback,fit_min=fit_min,fit_max=fit_max)
             bkg_x_center = data_x_center
             p1=parameters[0]
@@ -397,10 +418,12 @@ for event in range(MaxEvents):
             p4=parameters[3]
             p5=parameters[4]
             integral_data = None
-            bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
+            #bkg_function_nom = FiveParam(cms, bkg_x_center, p1, p2, p3, p4, p5)
             #bkg_sample_nom, weight_nom = construct_bkg_sample(bkg_function_nom, bkg_x_center, integral_data)
-            bkg_sample_nom=bkg_function_nom
+            #bkg_sample_nom=bkg_function_nom
 
+            bkg_sample_nom=tf1_to_numpy(bkg_x_center, back)
+           
             # Do not use it for now..
             #p1_alt=parameters_alt[0]
             #p2_alt=parameters_alt[1]
@@ -476,10 +499,14 @@ for event in range(MaxEvents):
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
 # result as extreme as, or more extreme than, the observed experimental data
 print()
-print("Total events=", MaxEvents)
-print("Found events=", NrFound)
+print("###### RESULT ###### ")
+print(" Total events requested =", MaxEvents)
+print(" Found events with bumps=", NrFound)
 pvalue=float(NrFound)/MaxEvents
-print("Global p-value=",pvalue, " for expected Z=",ExpectedLocalZvalue)
+print(" Expected Z=",ExpectedLocalZvalue)
+Zval=ROOT.RooStats.PValueToSignificance(pvalue)
+print(" Found global p-value=",pvalue, " or Z =",Zval)
+print("###### END RESULT ###### ")
 
 
 figdir="figs/"
@@ -490,8 +517,8 @@ ps1 = TPostScript( epsfig,113)
 
 
 # Plot one histogram for debugging
-TRIG_TYPE=2
-channel="jb"
+TRIG_TYPE=PLOT_TRIGGER_TYPE 
+channel=PLOT_CHANNEL 
 Xmin=XMIN
 Xmax=XMAX
 Ymin=YMIN
