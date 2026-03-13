@@ -30,7 +30,6 @@ def FiveParam_NP(Ecm, x_center, p1, p2, p3, p4, p5):
     nlog = np.log(x)
     return p1 * np.power((1.0 - x), p2) * np.power(x, (p3 + p4 * nlog + p5 * nlog * nlog))
 
-
 def fast_bumphunter_stat_with_loc(data_hist, bkg_hist, max_width=30):
     d_crop = np.asarray(data_hist).flatten()
     b_crop = np.asarray(bkg_hist).flatten()
@@ -50,48 +49,6 @@ def fast_bumphunter_stat_with_loc(data_hist, bkg_hist, max_width=30):
             best_idx = np.where(mask)[0][np.argmax(t_array)]
     return max_t, best_idx, best_w
 
-
-def fast_bumphunter_stat_with_loc(data_hist, bkg_hist, max_width=30):
-    d_flat = np.asarray(data_hist).flatten()
-    b_flat = np.asarray(bkg_hist).flatten()
-
-    # Exact pyBumpHunter cropping replication
-    non0 = np.where(b_flat > 0)[0]
-    if len(non0) == 0:
-        return 0.0, 0, 0
-
-    h_inf = non0[0]
-    h_sup = non0[-1] + 1
-
-    # If the valid region is smaller than the minimum window width (2), skip it
-    if (h_sup - h_inf) < 2:
-        return 0.0, 0, 0
-
-    d_crop = d_flat[h_inf:h_sup]
-    b_crop = b_flat[h_inf:h_sup]
-
-    max_t, best_w, best_idx = 0.0, 0, 0
-    # Restrict sliding window to the size of the cropped array
-    for w in range(2, min(max_width, h_sup - h_inf) + 1):
-        k = np.ones(w)
-        D = np.convolve(d_crop, k, mode='valid')
-        B = np.convolve(b_crop, k, mode='valid')
-
-        mask = (D > B) & (B > 0)
-        if not np.any(mask): continue
-
-        p = np.clip(gammainc(D[mask], B[mask]), 1e-300, 1.0)
-        t_array = -np.log(p)
-
-        if np.max(t_array) > max_t:
-            max_t = np.max(t_array)
-            best_w = w
-            # Map index back to the uncropped array
-            best_idx = h_inf + np.where(mask)[0][np.argmax(t_array)]
-
-    return max_t, best_idx, best_w
-
-
 # =================================================================
 # 2. Setup & Configuration
 # =================================================================
@@ -101,6 +58,7 @@ parser.add_argument("--zval", type=float, default=5.0)
 parser.add_argument("-b", "--batch", action="store_true")
 parser.add_argument("--fit", action="store_true")
 parser.add_argument("--chimax", type=float, default=2.0)
+parser.add_argument("--no-overlap", action="store_true", help="Disable JJ correlation overlap")
 args = parser.parse_args()
 
 if args.batch: ROOT.gROOT.SetBatch(True)
@@ -122,6 +80,15 @@ DEFALT_OVERLAP5 = {"jj": 0.0, "bb": 0.03, "jb": 0.16, "jm": 0.02, "je": 0.01, "j
 DEFALT_OVERLAP6 = {"jj": 0.0, "bb": 0.31, "jb": 0.47, "jm": 0.04, "je": 0.05, "jg": 0.12, "be": 0.02, "bm": 0.02, "bg": 0.02}
 DEFALT_OVERLAP7 = {"jj": 0.0, "bb": 0.43, "jb": 0.57, "jm": 0.04, "je": 0.05, "jg": 0.06, "be": 0.03, "bm": 0.03, "bg": 0.02}
 DEFALT_OVERLAP_TRIGGER = {1:DEFALT_OVERLAP1, 2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3, 4:DEFALT_OVERLAP4, 5:DEFALT_OVERLAP5, 6:DEFALT_OVERLAP6, 7:DEFALT_OVERLAP7}
+
+# Overlap Disablement Logic
+if args.no_overlap:
+    terminal.write("⚠️  Running WITHOUT channel overlaps (Independent Toys)\n")
+    for d in DEFALT_OVERLAP_TRIGGER.values():
+        for k in d:
+            d[k] = 0.0
+else:
+    terminal.write("🔗 Running WITH channel overlaps\n")
 
 mjjBinsL = [99,112,125,138,151,164,177,190, 203, 216, 229, 243, 257, 272, 287, 303, 319, 335, 352, 369, 387, 405, 424, 443, 462, 482, 502, 523, 544, 566, 588, 611, 634, 657, 681, 705, 730, 755, 781, 807, 834, 861, 889, 917, 946, 976, 1006, 1037, 1068, 1100, 1133, 1166, 1200, 1234, 1269, 1305, 1341, 1378, 1416, 1454, 1493, 1533, 1573, 1614, 1656, 1698, 1741, 1785, 1830, 1875, 1921, 1968, 2016, 2065, 2114, 2164, 2215, 2267, 2320, 2374, 2429, 2485, 2542, 2600, 2659, 2719, 2780, 2842, 2905, 2969, 3034, 3100, 3167, 3235, 3305, 3376, 3448, 3521, 3596, 3672, 3749, 3827, 3907, 3988, 4070, 4154, 4239, 4326, 4414, 4504, 4595, 4688, 4782, 4878, 4975, 5074, 5175, 5277, 5381, 5487, 5595, 5705, 5817, 5931, 6047, 6165, 6285, 6407, 6531, 6658, 6787, 6918, 7052, 7188, 7326, 7467, 7610, 7756, 7904, 8055, 8208, 8364, 8523, 8685, 8850, 9019, 9191, 9366, 9544, 9726, 9911, 10100, 10292, 10488, 10688, 10892, 11100, 11312, 11528, 11748, 11972, 12200, 12432, 12669, 12910, 13156]
 mjjBins = np.array(mjjBinsL)
@@ -162,7 +129,7 @@ for TRIG_TYPE in range(1, 8):
 # =================================================================
 # 4. Main Head-to-Head Loop
 # =================================================================
-terminal.write(f"\n🚀 Running Comparison (FitAgain={args.fit}, ChiMax={args.chimax})...\n")
+terminal.write(f"🚀 Running Comparison (FitAgain={args.fit}, ChiMax={args.chimax})...\n")
 terminal.write("-" * 55 + "\n")
 
 time_pybh, time_fast, max_z_diff = 0.0, 0.0, 0.0
@@ -224,9 +191,7 @@ for event in range(args.events):
                     fit_failures += 1
                     continue
                 
-                active_bkg = np.array([tf1_template.Eval(c) for c in eval_centers])
-                active_bkg[active_bkg < 1e-5] = 0.0
-                active_bkg = np.clip(active_bkg, 0.0, 1e7)
+                active_bkg = np.clip(np.array([tf1_template.Eval(c) for c in eval_centers]), 0.0, 1e7)
 
             # --- Method 1: pyBumpHunter ---
             t0 = time.time()
@@ -268,6 +233,7 @@ terminal.write("=" * 55 + "\n")
 terminal.write(" BUMPHUNTER METHOD COMPARISON RESULTS\n")
 terminal.write("=" * 55 + "\n")
 terminal.write(f"Total Pseudo-experiments : {args.events}\n")
+terminal.write(f"Overlap Status           : {'Disabled' if args.no_overlap else 'Enabled'}\n")
 terminal.write("-" * 55 + "\n")
 terminal.write(f"Total Time (pyBumpHunter): {time_pybh:.4f} seconds\n")
 terminal.write(f"Total Time (Fast NumPy)  : {time_fast:.4f} seconds\n")
