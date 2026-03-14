@@ -413,15 +413,15 @@ for event in range(MaxEvents):
                     hback1.SetBinError(i + 1, 0)
 
             # this will be slower, but could be more precise...
-            backFIT=back.Clone()
+            backFIT=back.Clone("backFIT"+str(TRIG_TYPE)+str(channel))
             ChiMax=2.0
             if (fitAgain):
-                      print("Perform background fit again Event=",event, " T=",TRIG_TYPE, " ch=",channel)
+                      print("Fit again event=",event, " T=",TRIG_TYPE, " ch=",channel)
                       fitr=hback.Fit(backFIT,"ISMRQ0")
                       chi2ndf=100
                       if (backFIT.GetNDF()>0): chi2ndf=backFIT.GetChisquare()/backFIT.GetNDF()
-                      if (fitr.IsValid()==False or chi2ndf>ChiMax):
-                         continue
+                      if (fitr is None) or (not fitr.IsValid()) or (chi2ndf > ChiMax): 
+                         continue 
                       else:
                          back=backFIT.Clone()
                          print("New fit was accepted with ",chi2ndf)
