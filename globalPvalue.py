@@ -208,8 +208,11 @@ for event in range(MaxEvents):
 
     BumpFound=False # so far no bump found for this run
 
-
-    if (event %20 == 0 ): print("Pseudo Event=",event)
+    if (event %50 == 0 and event>1 ): 
+                    print("##  Pseudo Event=",event)
+                    pvalue=float(NrFound)/event
+                    Zval=ROOT.RooStats.PValueToSignificance(pvalue)
+                    print("    So far global p-value=",pvalue, " or Z =",Zval, " after found=",NrFound)
 
     # loop over 7 triggers
     for TRIG_TYPE in range(1, 8):
@@ -554,7 +557,8 @@ for event in range(MaxEvents):
                     # collect bumps for visual inspection 
                     Bump=[hback,back, [x1, x2, Zval] ]
                     BumpCollector.append(Bump)
-    if (BumpFound): NrFound= NrFound+1
+    if (BumpFound): 
+                 NrFound= NrFound+1
 
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
 # result as extreme as, or more extreme than, the observed experimental data
