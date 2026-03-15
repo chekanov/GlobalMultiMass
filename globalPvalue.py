@@ -5,12 +5,12 @@
 
 
 ## Expected local significance as in BumpHunter
-ExpectedLocalZvalue=7
+ExpectedLocalZvalue=5 
 
 
 # Maximum pseudo-experiments for global p-value
 # for 6 sigma Z (local), set to maximum value to  a large number
-MaxEvents=1000
+MaxEvents=100
 
 # Do not process histograms with less than 50 entries 
 MinEntries = 50
@@ -64,11 +64,11 @@ parser.add_argument("--interactive", type=lambda x: (str(x).lower() == 'true'), 
 args = parser.parse_args()
 
 # ----------------- Use arguments in your code -----------------
-ExpectedLocalZvalue = args.ExpectedLocalZvalue
-MaxEvents = args.MaxEvents
-MinEntries = args.MinEntries
-noOverlap = args.noOverlap
-isInteractive=args.interactive
+ExpectedLocalZvalue = float(args.ExpectedLocalZvalue) 
+MaxEvents = int(args.MaxEvents) 
+MinEntries = int(args.MinEntries) 
+noOverlap = bool(args.noOverlap) 
+isInteractive=bool(args.interactive) 
 
 ########### DO NOT CHANGE ANYTHING BELOW ############
 
@@ -212,7 +212,7 @@ for event in range(MaxEvents):
                     print("##  Pseudo Event=",event)
                     pvalue=float(NrFound)/event
                     Zval=ROOT.RooStats.PValueToSignificance(pvalue)
-                    print("    So far global p-value=",pvalue, " or Z =",Zval, " after found=",NrFound)
+                    print("    So far global p-value=",pvalue, " or Z =",Zval, " evt found=",NrFound)
 
     # loop over 7 triggers
     for TRIG_TYPE in range(1, 8):
@@ -427,7 +427,7 @@ for event in range(MaxEvents):
                          continue 
                       else:
                          back=backFIT.Clone()
-                         print("New fit was accepted with ",chi2ndf)
+                         print(" -> fit with chi2/ndf={:.2f} ".format(chi2ndf))
 
             # collect histograms
             BackgroudFunction[hback_name] = back  
