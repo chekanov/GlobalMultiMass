@@ -46,7 +46,16 @@ The file with most significant bumps is stored in "figs/bumps.root". Use the  sh
 ## Configuration
 
 You can configure all input values at the beginning of the script **globalPvalue.py**. Make sure you run a sufficient number of experiments to address the 6 - 7  sigma requirement for local statistical deviation.
- 
+
+## Benchmark results 
+
+This table shows some benchmark results. The first column shows the required local significance in any of the 63 histograms with any width. The second columns shows the obtained global significance. 
+
+|Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
+|----------------|--------------------------|-----------------------------|
+| 3              | INF (p-value=1)          | INF (p-value=1)             |
+| 5              | 0.01 (p-value= 0.49)     | 0.2 (p-value= 0.41)         | 
+| 7              | 2.7  (p-value= 0.003)    | 2.8 (p-value=0.002)         | 
 
 ## Additional Details
 
