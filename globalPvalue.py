@@ -417,11 +417,10 @@ for event in range(MaxEvents):
 
             # this will be slower, but could be more precise...
             backFIT=back.Clone()
-            ChiMax=2.0
             if (fitAgain):
+                      ChiMax=2.0
                       print("Fit event=",event, " T=",TRIG_TYPE, " ch=",channel)
                       fitr =  hback.Fit(backFIT,"ISMRQ0")
-                      if not fitr: continue 
                       chi2ndf=100
                       if (backFIT.GetNDF()>0): chi2ndf=backFIT.GetChisquare()/backFIT.GetNDF()
                       if (chi2ndf > ChiMax): 
