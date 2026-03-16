@@ -1,8 +1,8 @@
-# Calculation of Global Significance for Jet+X Analysis Using Event Overlaps
+# Calculation of Global Significance for Multiple Invariant Masses Using Event Overlaps
 
-This repository contains code to compute the global p-value (global significance) for the Jet+X analysis using multiple invariant mass distributions, including the possibility of event overlap between masses.
-
-The code reads functional templates obtained from fits and performs multiple pseudo-experiments. In each pseudo-experiment, 63 histograms are randomly generated from the analytic functions. These histograms are organized into 9 different invariant masses across 7 independent trigger streams.
+This repository contains code to compute the global p-value (or global significance) in situations with multiple invariant mass distributions, including the possibility of event overlap between masses.
+ 
+The code reads functional templates obtained from fits and performs multiple pseudo-experiments. In each pseudo-experiment, 63 histograms are randomly generated from the analytic functions. These histograms are organized into 9 different invariant masses across 7 independent trigger channels.
 
 To better reproduce the behavior observed in real data, overlaps between invariant mass distributions within a given trigger stream can be introduced using the correlations observed in data. An alternative background hypothesis can also be enabled.
 
@@ -36,8 +36,8 @@ source setup.sh # Only if needed!
 python globalPvalue.py --ExpectedLocalZvalue 5 --MaxEvents 10000  --noOverlap false
 ```
 
-which runs 10000 pseudo-experiments with 9 invariant masses in 7 independent triggers, to estimate the 
-global significance for the expected Z=5 sigma (local) from BumpHunter in any of the pseudo-experiment (and any distribution). 
+which runs 10,000 pseudo-experiments with 9 invariant masses in 7 independent triggers, to estimate the 
+global significance for the expected Z=5 sigma (local) from BumpHunter in any distribution. 
 
 
 The file with most significant bumps is stored in "figs/bumps.root". Use the  showBumps.py to plot them for debugging.
@@ -49,7 +49,10 @@ You can configure all input values at the beginning of the script **globalPvalue
 
 ## Benchmark results 
 
-This table shows some benchmark results. The first column shows the required local significance in any of the 63 histograms with any width. The second columns shows the obtained global significance. 
+This table summarizes benchmark results. The first column gives the required local significance in any of the 63 histograms, for any width. The second column shows the corresponding global significance obtained. The third column shows the case with no mass overlaps, i.e. when all 63 histograms are treated as independent.
+
+Note: These results are very preliminary and are based on 10,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1.
+
 
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
