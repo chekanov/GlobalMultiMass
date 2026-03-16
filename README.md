@@ -55,6 +55,7 @@ This table shows some benchmark results. The first column shows the required loc
 |----------------|--------------------------|-----------------------------|
 | 3              | INF (p-value=1)          | INF (p-value=1)             |
 | 5              | -0.03(p-value= 0.51)     | 0.2 (p-value= 0.41)         | 
+| 6              | 1.51  (p-value= 0.064)   | 1.65 (p-value=0.048)        |
 | 7              | 2.59  (p-value= 0.0047)  | 2.64 (p-value=0.0041)       | 
 
 ## Additional Details
