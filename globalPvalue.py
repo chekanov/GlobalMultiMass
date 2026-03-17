@@ -86,6 +86,9 @@ import math,os,json
 import ROOT
 from ROOT import TCanvas, TVectorD, TPostScript, TFile, TLegend, gPad, TF1, TRandom3, TH1D, TMath
 from array import array
+import psutil
+
+process = psutil.Process(os.getpid())
 
 # -----------------------------
 # Configuration
@@ -188,14 +191,45 @@ Ntot=0
 print("\nRead all paramters from JSON") 
 mypar={}
 mypar_alt={}
+
+myfunc={}
+myfunc_alt={}
+
+print("Creating all functions ...")
 for TRIG_TYPE in range(1, 8):
      for channel in CHANNELS:
         fitfile = f"fits/fitme_p5_t{TRIG_TYPE}_{channel}.json"
         if os.path.isfile(fitfile) is False:
+                print("No function is defined=",fitfile)
                 continue
         with open(fitfile, "r") as jfile:
                data = json.load(jfile)
-               mypar[fitfile] = data
+ 
+        parameters = data["parameters"]
+        nom_func = data["name"]
+        errors = data["errors"]
+        ndf = int(data["ndf"])
+        chi2 = float(data["chi2"])
+        fit_min = float(data["fmin"])
+        fit_max = float(data["fmax"])
+
+        name = f"{TRIG_TYPE}_{channel}"
+        mback=FiveParam2015()
+        back = TF1("back_" + name, mback, fit_min, fit_max, 5)
+        mypar[name]=data
+
+
+        for i, value in enumerate(parameters):
+                value = float(value)
+                #print(f"p{i}={value}")
+                back.SetParameter(i, value)
+                if value == 0.0:
+                    back.FixParameter(i, value)
+
+        myfunc[name]=back
+
+        # one can also redefine functio here..   
+
         fitfile_alt = f"fits/fitme_p5alt_t{TRIG_TYPE}_{channel}.json"
         if os.path.isfile(fitfile_alt) is False:
                 continue
@@ -212,7 +246,10 @@ for event in range(MaxEvents):
                     print("##  Pseudo Event=",event)
                     pvalue=float(NrFound)/event
                     Zval=ROOT.RooStats.PValueToSignificance(pvalue)
+                    mem = process.memory_info()
                     print("    So far global p-value=",pvalue, " or Z =",Zval, " evt found=",NrFound)
+                    print(f"   RSS={mem.rss / 1024**2:.1f} MB", f"VMS={mem.vms / 1024**2:.1f} MB")
+
 
     # loop over 7 triggers
     for TRIG_TYPE in range(1, 8):
@@ -225,50 +262,17 @@ for event in range(MaxEvents):
         # Loop over each mass for a channel
         for channel in CHANNELS:
 
-            # get saved paramters
-            fitfile = f"fits/fitme_p5_t{TRIG_TYPE}_{channel}.json"
-            if fitfile not in mypar: continue
-            data_fit=mypar[fitfile]
-            fit_min, fit_max = XMIN, XMAX
-            # Background-only TF1 (5 params)
+            # get the function from the map of functions
             name = f"{TRIG_TYPE}_{channel}"
-            mback=FiveParam2015()
-            back = TF1("back_" + name, mback, fit_min, fit_max, 5)
+            if (name in myfunc):  back = myfunc[name]
+            else:
+                 print("Cannot find the function",name) 
+                 continue
 
-            # Background + signal TF1 (8 params)
-            mbacksig=FiveParam2015Gauss()
-            backsig = TF1(f"sig_{name}", mbacksig, fit_min, fit_max, 8)
-
-            parameters = data_fit["parameters"]
-            nom_func = data_fit["name"]
-            errors = data_fit["errors"]
-            ndf = int(data_fit["ndf"])
-            chi2 = float(data_fit["chi2"])
-            fit_min = float(data_fit["fmin"])
-            fit_max = float(data_fit["fmax"])
-
-            # alternative function for systematics  
-            data_fit_alt=mypar_alt[fitfile]
-            parameters_alt = data_fit_alt["parameters"]
-
-            """
-            chi2_ndf = chi2 / ndf if ndf else float("inf")
-              print(
-                "Nominal Fit chi2/ndf=",
-                chi2_ndf,
-                " Fit parameters=",
-                parameters,
-                " errors=",
-                errors,
-            )
-            """
-
-            for i, value in enumerate(parameters):
-                value = float(value)
-                #print(f"p{i}={value}")
-                back.SetParameter(i, value)
-                if value == 0.0:
-                    back.FixParameter(i, value)
+            parameters=mypar[name]
+            fit_min = float(parameters["fmin"])
+            fit_max = float(parameters["fmax"])
+ 
 
             # we only do this once for JJ, since overlap for other channels
             # will be obtained from this one. We fluctuate bins according to Poisson
@@ -557,6 +561,21 @@ for event in range(MaxEvents):
                     # collect bumps for visual inspection 
                     Bump=[hback,back, [x1, x2, Zval] ]
                     BumpCollector.append(Bump)
+
+        # clean up
+        """
+        try:
+          hbackJJ.Delete()
+          hback1.Delete()
+          hback2.Delete()
+          hback3.Delete()
+          del hunter
+          del mback
+        except NameError:
+             pass
+        """
+
+
     if (BumpFound): 
                  NrFound= NrFound+1
 
