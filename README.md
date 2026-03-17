@@ -51,8 +51,6 @@ You can configure all input values at the beginning of the script **globalPvalue
 
 This table summarizes benchmark results. The first column gives the required local significance in any of the 63 histograms, for any width. The second column shows the corresponding global significance obtained. The third column shows the case with no mass overlaps, i.e. when all 63 histograms are treated as independent.
 
-Note: These results are very preliminary and are based on 10,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1.
-
 
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
@@ -60,6 +58,12 @@ Note: These results are very preliminary and are based on 10,000 pseudo-experime
 | 5              | 0.15 (p-value= 0.44)     | 0.2 (p-value= 0.44)         | 
 | 6              | 1.51  (p-value= 0.064)   | 1.65 (p-value=0.048)        |
 | 7              | 2.59  (p-value= 0.0047)  | 2.64 (p-value=0.0041)       | 
+
+
+The observed global Z value is somewhat smaller than that expected for a fluctuation of a single bin above the Z(local) threshold in 63 histograms with 100 bins each, due to Poisson statistics. This is because the BumpHunter only selects excesses with at least two adjacent bins fluctuating upward, which is more consistent with a physical signal having finite resolution.
+
+
+Note: These results are very preliminary and are based on 10,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1.
 
 ## Additional Details
 
