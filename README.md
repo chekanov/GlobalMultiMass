@@ -55,8 +55,8 @@ This table summarizes benchmark results. The first column gives the required loc
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
 | 3              | INF (p-value=1)          | INF (p-value=1)             |
-| 5              | 0.15 (p-value= 0.44)     | 0.2 (p-value= 0.44)         | 
-| 6              | 1.51  (p-value= 0.064)   | 1.65 (p-value=0.048)        |
+| 5              | 0.15 (p-value= 0.54)     | 0.2 (p-value= 0.44)         | 
+| 6              | 1.42  (p-value= 0.076)   | 1.64 (p-value=0.050)        |
 | 7              | 2.59  (p-value= 0.0047)  | 2.64 (p-value=0.0041)       | 
 
 

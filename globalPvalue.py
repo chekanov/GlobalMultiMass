@@ -184,9 +184,6 @@ Histograms_fromJJ={}
 # collect bumps for further analysois
 BumpCollector=[] 
 
-# Just count histograms..
-Ntot=0
-
 ## fill from the files parameters
 print("\nRead all paramters from JSON") 
 mypar={}
@@ -229,7 +226,7 @@ for TRIG_TYPE in range(1, 8):
                mypar_alt[fitfile] = data_alt 
 
 
-
+NTOT=0
 print("\n#######Loop over events",MaxEvents)
 for event in range(MaxEvents):
 
@@ -237,7 +234,7 @@ for event in range(MaxEvents):
 
     if (event %50 == 0 and event>1 ): 
                     print("##  Pseudo Event=",event)
-                    pvalue=float(NrFound)/event
+                    pvalue=float(NrFound)/NTOT
                     Zval=ROOT.RooStats.PValueToSignificance(pvalue)
                     mem = process.memory_info()
                     print("    So far global p-value=",pvalue, " or Z =",Zval, " evt found=",NrFound)
@@ -401,9 +398,13 @@ for event in range(MaxEvents):
             hback.SetDirectory(0)
             hback.Add(hback1)
 
-            TotalEvents=hback.Integral()
+            TotalEvents=hback.Integral(hback.FindBin(fit_min), hback.FindBin(fit_max))
             if (TotalEvents<MinEntries):
-                               continue # ignore low multiplicities 
+                           del hback
+                           del hback1
+                           del hback2
+                           del hback3
+                           continue # ignore low multiplicities 
 
             # finally, clean-up all these things..
             # adding 2 histogram where 1 is a template may have content <1. Fix
@@ -451,8 +452,6 @@ for event in range(MaxEvents):
 
             # This is for debug only! 
             # if (channel != "jb" or TRIG_TYPE != 2): continue
-
-            Ntot=Ntot+1
 
             sign=0;
             sign_center=0
@@ -565,10 +564,11 @@ for event in range(MaxEvents):
 
         # clean up
         try:
-          hbackJJ.Delete()
-          hback1.Delete()
-          hback2.Delete()
-          hback3.Delete()
+          del hbackJJ
+          del hback 
+          del hback1 
+          del hback2  
+          del hback3 
           del hunter
           del data_y
           del bkg_sample_nom
@@ -577,17 +577,17 @@ for event in range(MaxEvents):
         except NameError:
              pass
 
-
-    if (BumpFound): 
-                 NrFound= NrFound+1
+    NTOT += 1
+    if (BumpFound): NrFound += 1 
+                 
 
 # the probability that background fluctuations alone (the null hypothesis) could produce a 
 # result as extreme as, or more extreme than, the observed experimental data
 print()
 print("###### RESULT ###### ")
-print(" Total events requested =", MaxEvents)
+print(" Total events requested =", NTOT)
 print(" Found events with bumps=", NrFound)
-pvalue=float(NrFound)/MaxEvents
+pvalue=float(NrFound)/NTOT
 print(" Expected Z=",ExpectedLocalZvalue)
 Zval=ROOT.RooStats.PValueToSignificance(pvalue)
 print(" Found global p-value=",pvalue, " or Z =",Zval)
