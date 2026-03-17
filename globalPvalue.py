@@ -420,17 +420,19 @@ for event in range(MaxEvents):
                     hback1.SetBinError(i + 1, 0)
 
             # this will be slower, but could be more precise...
-            backFIT=back.Clone()
             if (fitAgain):
+                      backFIT=back.Clone()
                       ChiMax=2.0
                       print("Fit event=",event, " T=",TRIG_TYPE, " ch=",channel)
                       fitr =  hback.Fit(backFIT,"ISMRQ0")
                       chi2ndf=100
                       if (backFIT.GetNDF()>0): chi2ndf=backFIT.GetChisquare()/backFIT.GetNDF()
                       if (chi2ndf > ChiMax): 
+                         backFIT.Delete()
                          continue 
                       else:
                          back=backFIT.Clone()
+                         backFIT.Delete()
                          print(" -> fit with chi2/ndf={:.2f} ".format(chi2ndf))
 
             # collect histograms

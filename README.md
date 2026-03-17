@@ -57,7 +57,7 @@ Note: These results are very preliminary and are based on 10,000 pseudo-experime
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
 | 3              | INF (p-value=1)          | INF (p-value=1)             |
-| 5              | -0.03(p-value= 0.51)     | 0.2 (p-value= 0.41)         | 
+| 5              | 0.15 (p-value= 0.44)     | 0.2 (p-value= 0.44)         | 
 | 6              | 1.51  (p-value= 0.064)   | 1.65 (p-value=0.048)        |
 | 7              | 2.59  (p-value= 0.0047)  | 2.64 (p-value=0.0041)       | 
 
