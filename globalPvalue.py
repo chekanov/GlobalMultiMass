@@ -213,29 +213,22 @@ for TRIG_TYPE in range(1, 8):
         fit_min = float(data["fmin"])
         fit_max = float(data["fmax"])
 
+        # create function with unconstrained parameters
         name = f"{TRIG_TYPE}_{channel}"
         mback=FiveParam2015()
         back = TF1("back_" + name, mback, fit_min, fit_max, 5)
         mypar[name]=data
-
-
-        for i, value in enumerate(parameters):
-                value = float(value)
-                #print(f"p{i}={value}")
-                back.SetParameter(i, value)
-                if value == 0.0:
-                    back.FixParameter(i, value)
-
         myfunc[name]=back
 
-        # one can also redefine functio here..   
-
+        # one can also redefine alternative here..   
         fitfile_alt = f"fits/fitme_p5alt_t{TRIG_TYPE}_{channel}.json"
         if os.path.isfile(fitfile_alt) is False:
                 continue
         with open(fitfile_alt, "r") as jfile:
                data_alt = json.load(jfile)
                mypar_alt[fitfile] = data_alt 
+
+
 
 print("\n#######Loop over events",MaxEvents)
 for event in range(MaxEvents):
@@ -268,11 +261,17 @@ for event in range(MaxEvents):
             else:
                  print("Cannot find the function",name) 
                  continue
-
-            parameters=mypar[name]
-            fit_min = float(parameters["fmin"])
-            fit_max = float(parameters["fmax"])
- 
+            # get parameters and set them to function
+            data_pars=mypar[name]
+            parameters = data_pars["parameters"] 
+            fit_min = float(data_pars["fmin"])
+            fit_max = float(data_pars["fmax"])
+            for i, value in enumerate(parameters):
+                value = float(value)
+                #print(f"p{i}={value}")
+                back.SetParameter(i, value)
+                if value == 0.0:
+                    back.FixParameter(i, value)
 
             # we only do this once for JJ, since overlap for other channels
             # will be obtained from this one. We fluctuate bins according to Poisson
@@ -565,17 +564,18 @@ for event in range(MaxEvents):
                     BumpCollector.append(Bump)
 
         # clean up
-        """
         try:
           hbackJJ.Delete()
           hback1.Delete()
           hback2.Delete()
           hback3.Delete()
           del hunter
-          del mback
+          del data_y
+          del bkg_sample_nom
+          del bkg_x_center
+          del back
         except NameError:
              pass
-        """
 
 
     if (BumpFound): 
