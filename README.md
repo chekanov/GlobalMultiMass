@@ -55,15 +55,19 @@ This table summarizes benchmark results. The first column gives the required loc
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
 | 3              | INF (p-value=1)          | INF (p-value=1)             |
-| 5              | 0.15 (p-value= 0.54)     | 0.2 (p-value= 0.44)         | 
-| 6              | 1.42  (p-value= 0.076)   | 1.64 (p-value=0.050)        |
-| 7              | 2.59  (p-value= 0.0047)  | 2.64 (p-value=0.0041)       | 
+| 5              | -0.08 (p-value= 0.54)    | 0.15 (p-value= 0.44)         | 
+| 6              | 1.49  (p-value= 0.068)   | 1.64 (p-value=0.051)        |
+| 7              | 2.61  (p-value= 0.0045)  | 2.62 (p-value=0.0042)       | 
 
 
 The observed global Z value is somewhat smaller than that expected for a fluctuation of a single bin above the Z(local) threshold in 63 histograms with 100 bins each, due to Poisson statistics. This is because the BumpHunter only selects excesses with at least two adjacent bins fluctuating upward, which is more consistent with a physical signal having finite resolution.
 
+The “overlap” case yields slightly more conservative p-values than the “no overlap” case. This is because the overlap was introduced with a negative correlation, which reduces fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation, this represents the most conservative assumption. By contrast, a positive correlation would be expected to increase the significance relative to the “no overlap” (fully independent) case.
 
-Note: These results are very preliminary and are based on 10,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1.
+
+Note: These results are very preliminary and are based on 10,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1 (for the 7 sigma case).
+
+
 
 ## Additional Details
 
