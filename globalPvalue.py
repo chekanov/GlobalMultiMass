@@ -134,7 +134,8 @@ print("############## START ################")
 print("The number of pseudo-experiments=",MaxEvents)
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
 print("Min number of entries=",MinEntries)
-print("Is interactive mode=",isInteractive)
+print("Is interactive mode ? =",isInteractive)
+print("Do you refit pseudo-data? =",fitAgain)
 
 
 # some default  min and max values X, Y ranges

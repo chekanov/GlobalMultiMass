@@ -59,6 +59,9 @@ This table summarizes benchmark results. The first column gives the required loc
 | 6              | 1.49  (p-value= 0.068)   | 1.64 (p-value=0.051)        |
 | 7              | 2.61  (p-value= 0.0045)  | 2.62 (p-value=0.0042)       | 
 
+This table was created using using "refit" option, which may suppress statistics fluctuations. But these results are likely to be more stable in the case of low statistics. 
+If statistics of histogram is sufficient, use the option "--doFit false". 
+
 
 The observed global Z value is somewhat smaller than that expected for a fluctuation of a single bin above the Z(local) threshold in 63 histograms with 100 bins each, due to Poisson statistics. This is because the BumpHunter only selects excesses with at least two adjacent bins fluctuating upward, which is more consistent with a physical signal having finite resolution.
 
