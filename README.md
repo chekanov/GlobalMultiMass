@@ -55,7 +55,7 @@ This table summarizes benchmark results. The first column gives the required loc
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
 | 3              | INF (p-value=1)          | INF (p-value=1)             |
-| 5              | -0.08 (p-value= 0.54)    | 0.15 (p-value= 0.44)         | 
+| 5              | -0.08 (p-value= 0.54)    | 0.15 (p-value= 0.44)        | 
 | 6              | 1.49  (p-value= 0.068)   | 1.64 (p-value=0.051)        |
 | 7              | 2.61  (p-value= 0.0045)  | 2.62 (p-value=0.0042)       | 
 
@@ -78,7 +78,7 @@ You should set `--doFit false` since the statistics is good for these histograms
 
 
 |Required local Z| Global Z (only jj)      | Global Z (jj & jb)  |
-|----------------|---------- --------------|---------------------|  
+|----------------|-------------------------|---------------------|  
 | 5              | 1.58                    | 1.39                | 
 | 6              | 2.58                    | 2.32                | 
 | 7              | 3.52                    | 3.23                | 
