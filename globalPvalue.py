@@ -57,7 +57,8 @@ parser.add_argument("--MinEntries", type=int, default=MinEntries,
 
 parser.add_argument("--noOverlap", type=lambda x: (str(x).lower() == 'true'), default=noOverlap,
                     help="Set to True to avoid overlap, False otherwise (default: True)")
-
+parser.add_argument("--doFit", type=lambda x: (str(x).lower() == 'true'), default=fitAgain,
+                    help="Set to True to refit random template data. Will suppress fluctuations for low statistics histograms! False otherwise (default: True)")
 parser.add_argument("--interactive", type=lambda x: (str(x).lower() == 'true'), default=True,
                     help="Set to True to show interactive canvas (default: True)")
 
@@ -69,6 +70,7 @@ MaxEvents = int(args.MaxEvents)
 MinEntries = int(args.MinEntries) 
 noOverlap = bool(args.noOverlap) 
 isInteractive=bool(args.interactive) 
+fitAgain=bool(args.doFit)
 
 ########### DO NOT CHANGE ANYTHING BELOW ############
 
