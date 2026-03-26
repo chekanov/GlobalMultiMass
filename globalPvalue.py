@@ -1,8 +1,11 @@
+# Estimation of global statistical significance for multiple histograms using a toy pseudoexperiment
 # This code runs multiple pseudo-experiments for 63 jet+X masses.
 # You may adjust pyBumpHunter since it uses this package..
+#  Authors: 
+#  Sergei V.Chekanov (ANL)
+#  Edison J. Weik 
 
 ############### USER SETTING ######################
-
 
 ## Expected local significance as in BumpHunter
 ExpectedLocalZvalue=5 
@@ -26,7 +29,7 @@ FluctuateBin={}
 
 # Do you want also re-fit template with the same function?
 # This will be much slower, use it for the production mode.
-fitAgain=True 
+fitAgain=False 
 
 
 # CM energy for fit functions
@@ -58,7 +61,7 @@ parser.add_argument("--MinEntries", type=int, default=MinEntries,
 parser.add_argument("--noOverlap", type=lambda x: (str(x).lower() == 'true'), default=noOverlap,
                     help="Set to True to avoid overlap, False otherwise (default: True)")
 parser.add_argument("--doFit", type=lambda x: (str(x).lower() == 'true'), default=fitAgain,
-                    help="Set to True to refit random template data. Will suppress fluctuations for low statistics histograms! False otherwise (default: True)")
+                    help="Set to True to refit random template data. Will suppress fluctuations for low statistics histograms! (default: False)")
 parser.add_argument("--interactive", type=lambda x: (str(x).lower() == 'true'), default=True,
                     help="Set to True to show interactive canvas (default: True)")
 
@@ -324,30 +327,19 @@ for event in range(MaxEvents):
                 B = back.Eval(center)  # get this value from function
                 hback2.SetBinContent(i + 1, B)
 
-            # we will keep track of the previous histogram
+            # only initialize here
             hback3_name = f"histo3_{TRIG_TYPE}_{channel}"
-            hback3 = hback2.Clone() # we clone it from JJ 
+            hback3 = hback2.Clone() # we clone it from JJ
             hback3.SetTitle(hback1_name)
             hback3.SetName(hback1_name)
             hback3.SetDirectory(0)
+
+            # ----------------------- Overlap case ----------------------
+            if (noOverlap==False):
  
-            # now make sure fraction comes from JJ
-            #F1=hback1.Integral()
-            #F2=hback2.Integral()
-            # No our JJ histogram has same normalization as hback2 * DEFALT_OVERLAP[channel]
-            #hback1.Scale(F2/F1)
-            #hback1.Scale(DEFALT_OVERLAP[channel])
-            # now we get fluctuations, and scale them..
-            # they represent deviations from backround after scaling them down to the expected
-            # fraction..
-            #newresiduals=[]
-            #for res in residuals:
-            #     newresiduals.append( res* DEFALT_OVERLAP[channel] * (F2/F1))
-
-
-            # now we refill overlap histogram using DEFALT_OVERLAP[channel] asamption
-            # but we will keep same shape. Use residuals from JJ to modify fluctuations
-            for i in range(hback2.GetNbinsX() - 1):
+              # now we refill overlap histogram using DEFALT_OVERLAP[channel] asamption
+              # but we will keep same shape. Use residuals from JJ to modify fluctuations
+              for i in range(hback2.GetNbinsX() - 1):
                 center=hback2.GetBinCenter(i + 1)
                 events2=hback2.GetBinContent(i + 1)
                 expected = (events2 * DEFALT_OVERLAP[channel])
@@ -371,20 +363,18 @@ for event in range(MaxEvents):
                 else:
                         hback2.SetBinContent(i + 1, 0)
                         hback2.SetBinError(i + 1, 0)
-  
-                
 
 
-            # and build remaining part of the histogram subtracting hback1 from hback2
-            # This subtracted entries are truly independent JJ, so we fluctuate them..
-            for i in range(hback2.GetNbinsX() - 1):
+              # and build remaining part of the histogram subtracting hback1 from hback2
+              # This subtracted entries are truly independent JJ, so we fluctuate them..
+              for i in range(hback2.GetNbinsX() - 1):
                 center = hback2.GetBinCenter(i + 1)
                 RemainingContent = hback2.GetBinContent(i + 1) - hback3.GetBinContent(i + 1)
                 if RemainingContent < 0:
                     RemainingContent = 0
 
-                # fluctuate according to Poisson statistics
-                pseudo = r.PoissonD(RemainingContent)
+                # fluctuate second part when noOverlap 
+                pseudo = r.PoissonD(RemainingContent) # fluctuate remaining part for overlap 
                 if pseudo > 0:
                     hback2.SetBinContent(i + 1, pseudo)
                     hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
@@ -392,14 +382,25 @@ for event in range(MaxEvents):
                     hback2.SetBinContent(i + 1, 0)
                     hback2.SetBinError(i + 1, 0)
 
-            # Finally, we can combine 2 histograms
-            # This histogram would have 2 parts, with overlap and correlated fluctuations
-            hback_name = f"histo_{TRIG_TYPE}_{channel}"
-            hback = hback2.Clone()
-            hback.SetTitle(hback_name)
-            hback.SetName(hback_name)
-            hback.SetDirectory(0)
-            hback.Add(hback1)
+              # Finally, we can combine 2 histograms
+              # This histogram would have 2 parts, with overlap and correlated fluctuations
+              hback_name = f"histo_{TRIG_TYPE}_{channel}"
+              hback = hback2.Clone()
+              hback.SetTitle(hback_name)
+              hback.SetName(hback_name)
+              hback.SetDirectory(0)
+              hback.Add(hback1)
+          
+            # -------------- no overlap -------------------- 
+            # end of the overlap case. Just do the copy  
+            if (noOverlap==True):
+              hback_name = f"histo_{TRIG_TYPE}_{channel}"
+              hback = hback2.Clone()
+              hback.SetTitle(hback_name)
+              hback.SetName(hback_name)
+              hback.SetDirectory(0)
+
+
 
             TotalEvents=hback.Integral(hback.FindBin(fit_min), hback.FindBin(fit_max))
             if (TotalEvents<MinEntries):
