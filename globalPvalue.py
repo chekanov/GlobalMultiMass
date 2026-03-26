@@ -415,14 +415,6 @@ for event in range(MaxEvents):
             hback.SetName(hback_name)
             hback.SetDirectory(0)
             hback.Add(hback1)
-              # Finally, we can combine 2 histograms
-              # This histogram would have 2 parts, with overlap and correlated fluctuations
-              hback_name = f"histo_{TRIG_TYPE}_{channel}"
-              hback = hback2.Clone()
-              hback.SetTitle(hback_name)
-              hback.SetName(hback_name)
-              hback.SetDirectory(0)
-              hback.Add(hback1)
           
             # -------------- no overlap -------------------- 
             # end of the overlap case. Just do the copy  
