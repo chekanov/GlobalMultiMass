@@ -96,7 +96,6 @@ process = psutil.Process(os.getpid())
 # Configuration
 # -----------------------------
 CHANNELS = ["jj", "jb", "bb", "je", "jm", "jg", "be", "bm", "bg"]
-CHANNELS = ["jj"]
 
 # we assume that some fraction of jj events ends up in as jb, bb, etc (in decreasing oder)
 # For example, "jb" = 0.4 means that 40% of events from "jj" are in "jb".  
@@ -197,7 +196,7 @@ myfunc={}
 myfunc_alt={}
 
 print("Creating all functions ...")
-for TRIG_TYPE in range(2, 3):
+for TRIG_TYPE in range(1, 8):
      for channel in CHANNELS:
         fitfile = f"fits/fitme_p5_t{TRIG_TYPE}_{channel}.json"
         if os.path.isfile(fitfile) is False:
