@@ -54,14 +54,13 @@ This table summarizes benchmark results. The first column gives the required loc
 
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
-| 3              | INF (p-value=1)          | INF (p-value=1)             |
-| 5              | -0.08 (p-value= 0.54)    | 0.15 (p-value= 0.44)        | 
-| 6              | 1.49  (p-value= 0.068)   | 1.64 (p-value=0.051)        |
-| 7              | 2.61  (p-value= 0.0045)  | 2.62 (p-value=0.0042)       | 
+| 4              |  INF (p-value=1)         | 0.86 (p-value=0.19)         |
+| 5              | -0.08 (p-value= 0.54)    | 2.57 (p-value=0.005)        | 
+| 6              | 1.37  (p-value= 0.085)   | Need to run longer          |
+| 7              | 2.87  (p-value= 0.002)   | Need to run longer          | 
 
-This table was created using using "refit" option, which may suppress statistics fluctuations. But these results are likely to be more stable in the case of low statistics. 
-If statistics of histogram is sufficient, use the option "--doFit false". 
-
+This table was created using using `"--doFit true"` option. These results are likely to be more stable for the refit option  
+in the case of low statistics, but if you know that statistics is not a problem, use `"--doFit false"`. 
 
 The observed global Z value is somewhat smaller than that expected for a fluctuation of a single bin above the Z(local) threshold in 63 histograms with 100 bins each, due to Poisson statistics. This is because the BumpHunter only selects excesses with at least two adjacent bins fluctuating upward, which is more consistent with a physical signal having finite resolution.
 
@@ -79,12 +78,11 @@ You should set `--doFit false` since the statistics is good for these histograms
 
 |Required local Z| Global Z (only jj)      | Global Z (jj & jb)  |
 |----------------|-------------------------|---------------------|  
-| 5              | 1.58                    | 1.39                | 
-| 6              | 2.58                    | 2.32                | 
-| 7              | 3.52                    | 3.23                | 
+| 4              | 2.35                    | 2.13                |
+| 5              | 3.60                    | 3.51                | 
 
 It shows the reduction of the global significance  with increase of the number of histograms.
-The jj and jb case are done without overlap.
+The jj+jb case are done without overlap.
 
 
 ## Additional Details
