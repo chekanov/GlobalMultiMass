@@ -371,7 +371,7 @@ for event in range(MaxEvents):
                     RemainingContent = 0
 
                 # fluctuate second part when noOverlap 
-                pseudo = r.PoissonD(RemainingContent) # fluctuate remaining part for overlap 
+                pseudo = r.PoissonD(RemainingContent) 
                 if pseudo > 0:
                     hback2.SetBinContent(i + 1, pseudo)
                     hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
@@ -409,6 +409,7 @@ for event in range(MaxEvents):
               hback.SetDirectory(0)
 
 
+            ### finish. Fix some ranges and run BumpHunter
             TotalEvents=hback.Integral(hback.FindBin(fit_min), hback.FindBin(fit_max))
             if (TotalEvents<MinEntries):
                            del hback
