@@ -96,6 +96,7 @@ process = psutil.Process(os.getpid())
 # Configuration
 # -----------------------------
 CHANNELS = ["jj", "jb", "bb", "je", "jm", "jg", "be", "bm", "bg"]
+CHANNELS = ["jj"]
 
 # we assume that some fraction of jj events ends up in as jb, bb, etc (in decreasing oder)
 # For example, "jb" = 0.4 means that 40% of events from "jj" are in "jb".  
@@ -196,7 +197,7 @@ myfunc={}
 myfunc_alt={}
 
 print("Creating all functions ...")
-for TRIG_TYPE in range(1, 8):
+for TRIG_TYPE in range(2, 3):
      for channel in CHANNELS:
         fitfile = f"fits/fitme_p5_t{TRIG_TYPE}_{channel}.json"
         if os.path.isfile(fitfile) is False:
@@ -304,96 +305,55 @@ for event in range(MaxEvents):
                         hbackJJ.SetBinError(i + 1, 0)
 
 
-            # create overlap histogram as in JJ data
-            # we use JJ as a template, but scale according to overlaps..
-            # this way we keep info of exact Poisson fluctuations
+            # We use JJ as a template to maintain correlated fluctuations
             hback1_name = f"histo1_{TRIG_TYPE}_{channel}"
             hback1 = hbackJJ.Clone()
             hback1.SetTitle(hback1_name)
             hback1.SetName(hback1_name)
             hback1.SetDirectory(0)
 
-            # Now we create 2nd histogram using the background function for this channel 
             hback2_name = f"histo2_{TRIG_TYPE}_{channel}"
-            hback2 = hbackJJ.Clone() # we clone it from JJ 
+            hback2 = hbackJJ.Clone()
             hback2.SetTitle(hback2_name)
             hback2.SetName(hback2_name)
             hback2.SetDirectory(0)
+
+            # Unified, mathematically clean loop for all bin fluctuations
             for i in range(hback2.GetNbinsX() - 1):
                 center = hback2.GetBinCenter(i + 1)
-                B = back.Eval(center)  # get this value from function
-                hback2.SetBinContent(i + 1, B)
-
-            # we will keep track of the previous histogram
-            hback3_name = f"histo3_{TRIG_TYPE}_{channel}"
-            hback3 = hback2.Clone() # we clone it from JJ 
-            hback3.SetTitle(hback1_name)
-            hback3.SetName(hback1_name)
-            hback3.SetDirectory(0)
- 
-            # now make sure fraction comes from JJ
-            #F1=hback1.Integral()
-            #F2=hback2.Integral()
-            # No our JJ histogram has same normalization as hback2 * DEFALT_OVERLAP[channel]
-            #hback1.Scale(F2/F1)
-            #hback1.Scale(DEFALT_OVERLAP[channel])
-            # now we get fluctuations, and scale them..
-            # they represent deviations from backround after scaling them down to the expected
-            # fraction..
-            #newresiduals=[]
-            #for res in residuals:
-            #     newresiduals.append( res* DEFALT_OVERLAP[channel] * (F2/F1))
-
-
-            # now we refill overlap histogram using DEFALT_OVERLAP[channel] asamption
-            # but we will keep same shape. Use residuals from JJ to modify fluctuations
-            for i in range(hback2.GetNbinsX() - 1):
-                center=hback2.GetBinCenter(i + 1)
-                events2=hback2.GetBinContent(i + 1)
-                expected = (events2 * DEFALT_OVERLAP[channel])
-
-                ## keep track expected without fluctuations 
-                hback3.SetBinContent(i + 1, expected)
-                hback3.SetBinError(i + 1, TMath.Sqrt(expected))
-
-
-                events=expected + expected * residuals[i] # fluctuate according to relative fluctuations of JJ 
-                hback1.SetBinContent(i + 1, events)
-                hback1.SetBinError(i + 1, TMath.Sqrt(events))
-
-                # keep the main histogram random
-                B = back.Eval(center)
-                pseudo = r.PoissonD(B)
-                # also keep random 
-                if pseudo > 0:
-                        hback2.SetBinContent(i + 1, pseudo)
-                        hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
-                else:
-                        hback2.SetBinContent(i + 1, 0)
-                        hback2.SetBinError(i + 1, 0)
-  
                 
+                # Total expected events for this specific channel
+                B_total = back.Eval(center)
+                
+                # How many of these events are expected to come from the JJ overlap?
+                ExpectedOverlap = B_total * DEFALT_OVERLAP[channel]
+                
+                # How many events are unique to this channel?
+                ExpectedRemaining = B_total - ExpectedOverlap
+                if ExpectedRemaining < 0: 
+                    ExpectedRemaining = 0
 
-
-            # and build remaining part of the histogram subtracting hback1 from hback2
-            # This subtracted entries are truly independent JJ, so we fluctuate them..
-            for i in range(hback2.GetNbinsX() - 1):
-                center = hback2.GetBinCenter(i + 1)
-                RemainingContent = hback2.GetBinContent(i + 1) - hback3.GetBinContent(i + 1)
-                if RemainingContent < 0:
-                    RemainingContent = 0
-
-                # fluctuate according to Poisson statistics
-                pseudo = r.PoissonD(RemainingContent)
-                if pseudo > 0:
-                    hback2.SetBinContent(i + 1, pseudo)
-                    hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
+                # 1. Fluctuate the unique portion EXACTLY ONCE
+                pseudo_remaining = r.PoissonD(ExpectedRemaining)
+                if pseudo_remaining > 0:
+                    hback2.SetBinContent(i + 1, pseudo_remaining)
+                    hback2.SetBinError(i + 1, TMath.Sqrt(pseudo_remaining))
                 else:
                     hback2.SetBinContent(i + 1, 0)
                     hback2.SetBinError(i + 1, 0)
 
-            # Finally, we can combine 2 histograms
-            # This histogram would have 2 parts, with overlap and correlated fluctuations
+                # 2. Build the overlap portion using the correlated JJ residuals
+                # If noOverlap=True, ExpectedOverlap is 0, so this sets hback1 to 0 safely.
+                if ExpectedOverlap > 0 and len(residuals) > i:
+                    fluctuated_overlap = ExpectedOverlap + (ExpectedOverlap * residuals[i])
+                    if fluctuated_overlap < 0: fluctuated_overlap = 0
+                    hback1.SetBinContent(i + 1, fluctuated_overlap)
+                    hback1.SetBinError(i + 1, TMath.Sqrt(fluctuated_overlap))
+                else:
+                    hback1.SetBinContent(i + 1, 0)
+                    hback1.SetBinError(i + 1, 0)
+
+            # Combine the independent fluctuations (hback2) and the correlated overlaps (hback1)
             hback_name = f"histo_{TRIG_TYPE}_{channel}"
             hback = hback2.Clone()
             hback.SetTitle(hback_name)
