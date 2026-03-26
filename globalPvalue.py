@@ -51,13 +51,10 @@ parser = argparse.ArgumentParser(description="Run multiple pseudo-experiments fo
 
 parser.add_argument("--ExpectedLocalZvalue", type=float, default=ExpectedLocalZvalue,
                     help="Expected local significance as in BumpHunter (default: 7)")
-
 parser.add_argument("--MaxEvents", type=int, default=MaxEvents,
                     help="Maximum pseudo-experiments for global p-value (default: 1000)")
-
 parser.add_argument("--MinEntries", type=int, default=MinEntries,
                     help="Do not process histograms with less than this many entries (default: 50)")
-
 parser.add_argument("--noOverlap", type=lambda x: (str(x).lower() == 'true'), default=noOverlap,
                     help="Set to True to avoid overlap, False otherwise (default: True)")
 parser.add_argument("--doFit", type=lambda x: (str(x).lower() == 'true'), default=fitAgain,
@@ -394,12 +391,22 @@ for event in range(MaxEvents):
             # -------------- no overlap -------------------- 
             # end of the overlap case. Just do the copy  
             if (noOverlap==True):
+              for i in range(hback2.GetNbinsX() - 1):
+                center = hback2.GetBinCenter(i + 1)
+                # keep the main histogram random
+                B = back.Eval(center)
+                pseudo = r.PoissonD(B)
+                if pseudo > 0:
+                        hback2.SetBinContent(i + 1, pseudo)
+                        hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
+                else:
+                        hback2.SetBinContent(i + 1, 0)
+                        hback2.SetBinError(i + 1, 0)
               hback_name = f"histo_{TRIG_TYPE}_{channel}"
               hback = hback2.Clone()
               hback.SetTitle(hback_name)
               hback.SetName(hback_name)
               hback.SetDirectory(0)
-
 
 
             TotalEvents=hback.Integral(hback.FindBin(fit_min), hback.FindBin(fit_max))
