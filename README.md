@@ -61,7 +61,7 @@ This table summarizes benchmark results. The first column gives the required loc
 
 This table was created using using `"--doFit true"` option. These results are more stable in the case of low statistics, but if you know that statistics is not a problem, use `"--doFit false"`.
 
-The “overlap” case yields slightly more conservative (smaller) p-values than the “no overlap” case. This is because the overlap was introduced with a positive correlation, which increases fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation as in the Standard Model, this represents the most conservative assumption, compared to "no correlation" or "negative correlation" case. 
+The “overlap” case yields more conservative (larger) global p-values ( or smaller global Z values) than the “no overlap” case. This is because the overlap was introduced with a positive correlation, which increases fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation as in the Standard Model, this represents the most conservative assumption, compared to "no correlation" or "negative correlation" case.
 
 *Note*: These results are very preliminary and are based on 100,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1 (for the 7 sigma case).
 
