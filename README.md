@@ -61,16 +61,12 @@ This table summarizes benchmark results. The first column gives the required loc
 
 This table was created using using `"--doFit true"` option. These results are more stable in the case of low statistics, but if you know that statistics is not a problem, use `"--doFit false"`.
 
-The observed global Z value is somewhat smaller than that expected for a fluctuation of a single bin above the Z(local) threshold in 63 histograms with 100 bins each, due to Poisson statistics. This is because the BumpHunter only selects excesses with at least two adjacent bins fluctuating upward, which is more consistent with a physical signal having finite resolution.
+The “overlap” case yields slightly more conservative (smaller) p-values than the “no overlap” case. This is because the overlap was introduced with a positive correlation, which increases fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation as in the Standard Model, this represents the most conservative assumption, compared to "no correlation" or "negative correlation" case. 
 
-The “overlap” case yields slightly more conservative p-values than the “no overlap” case. This is because the overlap was introduced with a negative correlation, which reduces fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation, this represents the most conservative assumption. By contrast, a positive correlation would be expected to increase the significance relative to the “no overlap” (fully independent) case.
-
-
-*Note*: These results are very preliminary and are based on 10,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1 (for the 7 sigma case).
+*Note*: These results are very preliminary and are based on 100,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1 (for the 7 sigma case).
 
 *Checking*: 
 If you reduce the number of probed masses, you should expect the global significance to increase.
-
 To check the code, you may enable only one mass (`"jj"`) or two masses (`"jj"` and `"jb"`) in the list of masses on line 98, and only trigger 2, which has the largest statistics (see line 248 and change it to `range(2, 3)`). This will be similar to the "global" BumpHunter p-value.
 You should set `--doFit false` since the statistics is good for these histograms.
 
