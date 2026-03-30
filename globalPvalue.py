@@ -541,7 +541,6 @@ for event in range(MaxEvents):
           del hback 
           del hback1 
           del hback2  
-          del hback3 
           del hunter
           del data_y
           del bkg_sample_nom
