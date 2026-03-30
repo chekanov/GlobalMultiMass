@@ -304,7 +304,15 @@ for event in range(MaxEvents):
                         hbackJJ.SetBinError(i + 1, 0)
 
 
-            # We use JJ as a template to maintain correlated fluctuations
+            # -----------------------------------------------------------------
+            # CLEAN REWRITE: Single-pass loop for all bin fluctuations
+            # -----------------------------------------------------------------
+            hback_name = f"histo_{TRIG_TYPE}_{channel}"
+            hback = hbackJJ.Clone()
+            hback.SetTitle(hback_name)
+            hback.SetName(hback_name)
+            hback.SetDirectory(0)
+
             hback1_name = f"histo1_{TRIG_TYPE}_{channel}"
             hback1 = hbackJJ.Clone()
             hback1.SetTitle(hback1_name)
@@ -317,124 +325,50 @@ for event in range(MaxEvents):
             hback2.SetName(hback2_name)
             hback2.SetDirectory(0)
 
-            # Unified, mathematically clean loop for all bin fluctuations
-            for i in range(hback2.GetNbinsX() - 1):
-                center = hback2.GetBinCenter(i + 1)
-                
-                # Total expected events for this specific channel
+            for i in range(hback.GetNbinsX() - 1):
+                center = hback.GetBinCenter(i + 1)
                 B_total = back.Eval(center)
-                
-                # How many of these events are expected to come from the JJ overlap?
-                ExpectedOverlap = B_total * DEFALT_OVERLAP[channel]
-                
-                # How many events are unique to this channel?
-                ExpectedRemaining = B_total - ExpectedOverlap
-                if ExpectedRemaining < 0: 
-                    ExpectedRemaining = 0
 
-                # 1. Fluctuate the unique portion EXACTLY ONCE
-                pseudo_remaining = r.PoissonD(ExpectedRemaining)
-                if pseudo_remaining > 0:
-                    hback2.SetBinContent(i + 1, pseudo_remaining)
-                    hback2.SetBinError(i + 1, TMath.Sqrt(pseudo_remaining))
-            for i in range(hback2.GetNbinsX() - 1):
-                center = hback2.GetBinCenter(i + 1)
-                B = back.Eval(center)  # get this value from function
-                hback2.SetBinContent(i + 1, B)
+                if noOverlap:
+                    # Purely independent fluctuations
+                    pseudo_total = r.PoissonD(B_total) if B_total > 0 else 0
 
-            # only initialize here
-            hback3_name = f"histo3_{TRIG_TYPE}_{channel}"
-            hback3 = hback2.Clone() # we clone it from JJ
-            hback3.SetTitle(hback1_name)
-            hback3.SetName(hback1_name)
-            hback3.SetDirectory(0)
+                    hback.SetBinContent(i + 1, pseudo_total)
+                    hback.SetBinError(i + 1, TMath.Sqrt(pseudo_total) if pseudo_total > 0 else 0)
 
-            # ----------------------- Overlap case ----------------------
-            if (noOverlap==False):
- 
-              # now we refill overlap histogram using DEFALT_OVERLAP[channel] asamption
-              # but we will keep same shape. Use residuals from JJ to modify fluctuations
-              for i in range(hback2.GetNbinsX() - 1):
-                center=hback2.GetBinCenter(i + 1)
-                events2=hback2.GetBinContent(i + 1)
-                expected = (events2 * DEFALT_OVERLAP[channel])
-
-                ## keep track expected without fluctuations 
-                hback3.SetBinContent(i + 1, expected)
-                hback3.SetBinError(i + 1, TMath.Sqrt(expected))
-
-
-                events=expected + expected * residuals[i] # fluctuate according to relative fluctuations of JJ 
-                hback1.SetBinContent(i + 1, events)
-                hback1.SetBinError(i + 1, TMath.Sqrt(events))
-
-                # keep the main histogram random
-                B = back.Eval(center)
-                pseudo = r.PoissonD(B)
-                # also keep random 
-                if pseudo > 0:
-                        hback2.SetBinContent(i + 1, pseudo)
-                        hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
-                else:
-                        hback2.SetBinContent(i + 1, 0)
-                        hback2.SetBinError(i + 1, 0)
-
-
-              # and build remaining part of the histogram subtracting hback1 from hback2
-              # This subtracted entries are truly independent JJ, so we fluctuate them..
-              for i in range(hback2.GetNbinsX() - 1):
-                center = hback2.GetBinCenter(i + 1)
-                RemainingContent = hback2.GetBinContent(i + 1) - hback3.GetBinContent(i + 1)
-                if RemainingContent < 0:
-                    RemainingContent = 0
-
-                # fluctuate second part when noOverlap 
-                pseudo = r.PoissonD(RemainingContent) 
-                if pseudo > 0:
-                    hback2.SetBinContent(i + 1, pseudo)
-                    hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
-                else:
-                    hback2.SetBinContent(i + 1, 0)
-                    hback2.SetBinError(i + 1, 0)
-
-                # 2. Build the overlap portion using the correlated JJ residuals
-                # If noOverlap=True, ExpectedOverlap is 0, so this sets hback1 to 0 safely.
-                if ExpectedOverlap > 0 and len(residuals) > i:
-                    fluctuated_overlap = ExpectedOverlap + (ExpectedOverlap * residuals[i])
-                    if fluctuated_overlap < 0: fluctuated_overlap = 0
-                    hback1.SetBinContent(i + 1, fluctuated_overlap)
-                    hback1.SetBinError(i + 1, TMath.Sqrt(fluctuated_overlap))
-                else:
+                    # For plotting logic consistency
+                    hback2.SetBinContent(i + 1, pseudo_total)
+                    hback2.SetBinError(i + 1, TMath.Sqrt(pseudo_total) if pseudo_total > 0 else 0)
                     hback1.SetBinContent(i + 1, 0)
                     hback1.SetBinError(i + 1, 0)
 
-            # Combine the independent fluctuations (hback2) and the correlated overlaps (hback1)
-            hback_name = f"histo_{TRIG_TYPE}_{channel}"
-            hback = hback2.Clone()
-            hback.SetTitle(hback_name)
-            hback.SetName(hback_name)
-            hback.SetDirectory(0)
-            hback.Add(hback1)
-          
-            # -------------- no overlap -------------------- 
-            # end of the overlap case. Just do the copy  
-            if (noOverlap==True):
-              for i in range(hback2.GetNbinsX() - 1):
-                center = hback2.GetBinCenter(i + 1)
-                # keep the main histogram random
-                B = back.Eval(center)
-                pseudo = r.PoissonD(B)
-                if pseudo > 0:
-                        hback2.SetBinContent(i + 1, pseudo)
-                        hback2.SetBinError(i + 1, TMath.Sqrt(pseudo))
                 else:
-                        hback2.SetBinContent(i + 1, 0)
-                        hback2.SetBinError(i + 1, 0)
-              hback_name = f"histo_{TRIG_TYPE}_{channel}"
-              hback = hback2.Clone()
-              hback.SetTitle(hback_name)
-              hback.SetName(hback_name)
-              hback.SetDirectory(0)
+                    # 1. Partition the expectation
+                    ExpectedOverlap = B_total * DEFALT_OVERLAP[channel]
+                    ExpectedRemaining = B_total - ExpectedOverlap
+                    if ExpectedRemaining < 0:
+                        ExpectedRemaining = 0
+
+                    # 2. Fluctuate the correlated overlap portion using JJ residuals
+                    res = residuals[i] if i < len(residuals) else 0.0
+                    fluctuated_overlap = ExpectedOverlap * (1.0 + res)
+                    if fluctuated_overlap < 0:
+                        fluctuated_overlap = 0
+
+                    hback1.SetBinContent(i + 1, fluctuated_overlap)
+                    hback1.SetBinError(i + 1, TMath.Sqrt(fluctuated_overlap) if fluctuated_overlap > 0 else 0)
+
+                    # 3. Fluctuate the unique remaining portion independently
+                    pseudo_remaining = r.PoissonD(ExpectedRemaining) if ExpectedRemaining > 0 else 0
+
+                    hback2.SetBinContent(i + 1, pseudo_remaining)
+                    hback2.SetBinError(i + 1, TMath.Sqrt(pseudo_remaining) if pseudo_remaining > 0 else 0)
+
+                    # 4. Combine for the final histogram
+                    total_bin_events = fluctuated_overlap + pseudo_remaining
+
+                    hback.SetBinContent(i + 1, total_bin_events)
+                    hback.SetBinError(i + 1, TMath.Sqrt(total_bin_events) if total_bin_events > 0 else 0)
 
 
             ### finish. Fix some ranges and run BumpHunter
@@ -443,7 +377,6 @@ for event in range(MaxEvents):
                            del hback
                            del hback1
                            del hback2
-                           del hback3
                            continue # ignore low multiplicities 
 
             # finally, clean-up all these things..
