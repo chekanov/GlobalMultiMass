@@ -33,19 +33,17 @@ If you use the command line arguments, use this:
 
 ```bash
 source setup.sh # Only if needed!
-python globalPvalue.py --ExpectedLocalZvalue 5 --MaxEvents 10000  --noOverlap false
+nohup python globalPvalue.py --ExpectedLocalZvalue 5 --MaxEvents 25000  --noOverlap false --interactive false --doFit false > globalPvalue5.log 2>&1 &
+nohup python globalPvalue.py --ExpectedLocalZvalue 5 --MaxEvents 25000  --noOverlap true --interactive false --doFit false > globalPvalue5no.log 2>&1 &
 ```
 
-which runs 10,000 pseudo-experiments with 9 invariant masses in 7 independent triggers, to estimate the 
+which runs 25,000 pseudo-experiments with 9 invariant masses in 7 independent triggers, to estimate the 
 global significance for the expected Z=5 sigma (local) from BumpHunter in any distribution. 
+You may monitor the program by doing `grep 'So far' globalPvalue5.log`.
 
 
 The file with most significant bumps is stored in "figs/bumps.root". Use the  showBumps.py to plot them for debugging.
 
-
-## Configuration
-
-You can configure all input values at the beginning of the script **globalPvalue.py**. Make sure you run a sufficient number of experiments to address the 6 - 7  sigma requirement for local statistical deviation.
 
 ## Benchmark results 
 
@@ -54,14 +52,14 @@ This table summarizes benchmark results. The first column gives the required loc
 
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
-| 4              | 0.017 (p-value=0.49)     | 0.48 (p-value=0.031)        |
+| 4              | 0.04  (p-value=0.48)     | 0.8 (p-value=0.21)          |
 | 5              | 1.17  (p-value= 0.121)   | 2.63 (p-value=0.004)        | 
 | 6              | 2.0   (p-value= 0.020)   | Need to run longer          |
 | 7              | 2.7   (p-value= 0.003)   | Need to run longer          | 
 
-This table was created using using `"--doFit true"` option. These results are more stable in the case of low statistics, but if you know that statistics is not a problem, use `"--doFit false"`.
+This table was created using using `"--doFit false"` option. 
 
-The “overlap” case yields more conservative (larger) global p-values ( or smaller global Z values) than the “no overlap” case. This is because the overlap was introduced with a positive correlation, which increases fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation as in the Standard Model, this represents the most conservative assumption, compared to "no correlation" or "negative correlation" case.
+The “overlap” case yields more conservative (larger) global p-values (or smaller global Z values) than the “no overlap” case. This is because the overlap was introduced with a positive correlation, which increases fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation as in the Standard Model, this represents the most conservative assumption, compared to "no correlation" or "negative correlation" case.
 
 *Note*: These results are very preliminary and are based on 100,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1 (for the 7 sigma case).
 
