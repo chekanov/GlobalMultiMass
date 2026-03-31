@@ -54,7 +54,7 @@ This table summarizes benchmark results. The first column gives the required loc
 |----------------|--------------------------|-----------------------------|
 | 4              | 0.76  (p-value=0.224)    | 0.80 (p-value=0.213)        |
 | 5              | 1.95  (p-value= 0.025)   | 2.71 (p-value=0.0033)       | 
-| 6              | 2.77  (p-value= 0.0027)  | 4.01 (p-value=3.01-05       |
+| 6              | 2.77  (p-value= 0.0027)  | 4.01 (p-value=3.01-05)      |
 | 7              | 3.54  (p-value= 0.00019) | Need to run longer          | 
 
 This table was created using using `"--doFit false"` option. 
