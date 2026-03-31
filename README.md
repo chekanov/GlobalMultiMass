@@ -52,10 +52,10 @@ This table summarizes benchmark results. The first column gives the required loc
 
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
-| 4              | 0.04  (p-value=0.48)     | 0.8 (p-value=0.21)          |
-| 5              | 1.17  (p-value= 0.121)   | 2.63 (p-value=0.004)        | 
-| 6              | 2.0   (p-value= 0.020)   | Need to run longer          |
-| 7              | 2.7   (p-value= 0.003)   | Need to run longer          | 
+| 4              | 0.76  (p-value=0.224)    | 0.80 (p-value=0.213)        |
+| 5              | 1.93  (p-value= 0.027)   | 2.64 (p-value=0.004)        | 
+| 6              | 2.72  (p-value= 0.003)   | Need to run longer          |
+| 7              | Need to run longer       | Need to run longer          | 
 
 This table was created using using `"--doFit false"` option. 
 

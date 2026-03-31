@@ -97,22 +97,19 @@ process = psutil.Process(os.getpid())
 # -----------------------------
 CHANNELS = ["jj", "jb", "bb", "je", "jm", "jg", "be", "bm", "bg"]
 
-# we assume that some fraction of jj events ends up in as jb, bb, etc (in decreasing oder)
-# For example, "jb" = 0.4 means that 40% of events from "jj" are in "jb".  
+# We assume that some fraction of jj events ends up in as jb, bb, etc (in decreasing oder)
+# This is based on Wasikul's studies of overlaping events.
 # Any other possiblity would require samplings from SM Monte Carlo, which is impossible to do
 # since we need billions of events from Monte Carlo. This also assumes that overlaping shape repeats
-# the shape of jj (which is a good assamption since all such masses are basically p5 with very similar shapes
-# For example, jb:0.4 means that 40% of events originate from jj.
-#              je:0.2 means that 20% of events originte from jj etc 
-# Trigger-dependent overlap values 
-# Should be modified using Wasikul's plots
-DEFALT_OVERLAP1={"jj":0.0, "bb":0.41, "jb":0.63, "jm":0.34, "je":0.34, "jg":0.06, "be":0.20, "bm":0.2, "bg":0.01}  
-DEFALT_OVERLAP2={"jj":0.0, "bb":0.27, "jb":0.37, "jm":0.53, "je":0.53, "jg":0.01, "be":0.24, "bm":0.25, "bg":0.01}
-DEFALT_OVERLAP3={"jj":0.0, "bb":0.01, "jb":0.28, "jm":0.53, "je":0.52, "jg":0.01, "be":0.16, "bm":0.19, "bg":0.01}
-DEFALT_OVERLAP4={"jj":0.0, "bb":0.13, "jb":0.14, "jm":0.02, "je":0.02, "jg":0.99, "be":0.01, "bm":0.01, "bg":0.24}
-DEFALT_OVERLAP5={"jj":0.0, "bb":0.03, "jb":0.16, "jm":0.02, "je":0.01, "jg":0.99, "be":0.01, "bm":0.01, "bg":0.16}
-DEFALT_OVERLAP6={"jj":0.0, "bb":0.31, "jb":0.47, "jm":0.04, "je":0.05, "jg":0.12, "be":0.02, "bm":0.02, "bg":0.02}
-DEFALT_OVERLAP7={"jj":0.0, "bb":0.43, "jb":0.57, "jm":0.04, "je":0.05, "jg":0.06, "be":0.03, "bm":0.03, "bg":0.02}
+DEFALT_OVERLAP1={"jj":0.0, "bb":0.75, "jb":0.85, "jm":0.85, "je":0.85, "jg":0.73, "be":0.77, "bm":0.75, "bg":0.62}
+DEFALT_OVERLAP2={"jj":0.0, "bb":0.58, "jb":0.77, "jm":0.83, "je":0.83, "jg":0.57, "be":0.64, "bm":0.63, "bg":0.43}
+DEFALT_OVERLAP3={"jj":0.0, "bb":0.21, "jb":0.53, "jm":0.74, "je":0.73, "jg":0.34, "be":0.34, "bm":0.36, "bg":0.26}
+DEFALT_OVERLAP4={"jj":0.0, "bb":0.54, "jb":0.74, "jm":0.59, "je":0.57, "jg":0.79, "be":0.43, "bm":0.47, "bg":0.63}
+DEFALT_OVERLAP5={"jj":0.0, "bb":0.33, "jb":0.56, "jm":0.74, "je":0.46, "jg":0.85, "be":0.30, "bm":1.00, "bg":0.41}
+DEFALT_OVERLAP6={"jj":0.0, "bb":0.83, "jb":0.90, "jm":0.94, "je":0.95, "jg":0.97, "be":0.86, "bm":0.87, "bg":0.85}
+DEFALT_OVERLAP7={"jj":0.0, "bb":0.92, "jb":0.95, "jm":0.99, "je":0.98, "jg":1.00, "be":0.98, "bm":0.97, "bg":0.99}
+
+
 # This is overlap for different triggers
 DEFALT_OVERLAP_TRIGGER={1:DEFALT_OVERLAP1,2:DEFALT_OVERLAP2, 3:DEFALT_OVERLAP3, 
                         4:DEFALT_OVERLAP4, 5:DEFALT_OVERLAP5, 6:DEFALT_OVERLAP6,7:DEFALT_OVERLAP7} 
