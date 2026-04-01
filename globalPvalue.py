@@ -281,17 +281,18 @@ for event in range(MaxEvents):
                 hbackJJ.SetDirectory(0)
                 #print("Created JJ template")
 
+                jj_expectations=[]
                 residuals=[]
                 for i in range(hbackJJ.GetNbinsX() - 1):
                     center = hbackJJ.GetBinCenter(i + 1)
                     B = back.Eval(center)
                     pseudo = r.PoissonD(B)
-
+                 
                     # only for debugging.. Make it fluctuate 
                     if (FluctuateBin != None): 
                                     if (i in FluctuateBin): pseudo = pseudo+FluctuateBin[i] # just for debuggin.. Make this bin to fluctuate! 
 
-
+                    jj_expectations.append(B)
                     residuals.append( (pseudo - B) / B) # we keep relative deviation due to Poisson statistics 
                     if pseudo > 0:
                         hbackJJ.SetBinContent(i + 1, pseudo)
@@ -342,6 +343,8 @@ for event in range(MaxEvents):
                 else:
                     # 1. Partition the expectation
                     ExpectedOverlap = B_total * DEFALT_OVERLAP[channel]
+                    B_jj = jj_expectations[i] if i < len(jj_expectations) else 0.0
+                    ExpectedOverlap = min(ExpectedOverlap, B_jj)
                     ExpectedRemaining = B_total - ExpectedOverlap
                     if ExpectedRemaining < 0:
                         ExpectedRemaining = 0
