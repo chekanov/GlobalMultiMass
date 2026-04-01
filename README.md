@@ -52,8 +52,8 @@ This table summarizes benchmark results. The first column gives the required loc
 
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
-| 4              | 1.46  (p-value=0.072)    | 0.80 (p-value=0.213)        |
-| 5              | 3.17  (p-value=0.00076)  | 2.71 (p-value=0.0033)       | 
+| 4              | 1.50  (p-value=0.066)    | 0.80 (p-value=0.213)        |
+| 5              | 3.21  (p-value=0.00064)  | 2.67 (p-value=0.0037)       | 
 | 6              | Need to run longer       | Need to run longer          |
 | 7              | Need to run longer       | Need to run longer          | 
 
