@@ -52,14 +52,15 @@ This table summarizes benchmark results. The first column gives the required loc
 
 |Required local Z| Found global Z (overlap) | Found global Z (no overlap) |
 |----------------|--------------------------|-----------------------------|
-| 4              | 0.76  (p-value=0.224)    | 0.80 (p-value=0.213)        |
-| 5              | 1.95  (p-value= 0.025)   | 2.71 (p-value=0.0033)       | 
-| 6              | 2.77  (p-value= 0.0027)  | 4.01 (p-value=3.01-05)      |
-| 7              | 3.54  (p-value= 0.00019) | Need to run longer          | 
+| 4              | 1.46  (p-value=0.072)    | 0.80 (p-value=0.213)        |
+| 5              | 3.17  (p-value=0.00076)  | 2.71 (p-value=0.0033)       | 
+| 6              | Need to run longer       | Need to run longer          |
+| 7              | Need to run longer       | Need to run longer          | 
 
 This table was created using using `"--doFit false"` option. 
 
-The “overlap” case yields more conservative (larger) global p-values (or smaller global Z values) than the “no overlap” case. This is because the overlap was introduced with a positive correlation, which increases fluctuations in the data points. Since the toy simulation does not model the exact event-by-event correlation as in the Standard Model, this represents the most conservative assumption, compared to "no correlation" or "negative correlation" case.
+The “overlap” case yields smaller global p-values (or larger global Z values) than the “no overlap” case. 
+Thus the "no overalp" case represents the most conservative assumption, compared to the overlap case.
 
 *Note*: These results are very preliminary and are based on 100,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1 (for the 7 sigma case).
 
