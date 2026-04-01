@@ -61,6 +61,11 @@ This table was created using using `"--doFit false"` option.
 
 The “overlap” case yields smaller global p-values (or larger global Z values) than the “no overlap” case. 
 Thus the "no overalp" case represents the most conservative assumption, compared to the overlap case.
+Generally, this is consistent with the observation that the toy experiment should yield a value of 
+Z between two extremes: one in which all 63 histograms are treated as independent (leading to the smallest Z), 
+and the other in which the 63 histograms are grouped into 7 independent groups, with 9 histograms in each group 
+having 100% overlap (i.e., being identical repeated histograms).
+ 
 
 *Note*: These results are very preliminary and are based on 100,000 pseudo-experiments. The uncertainty on the quoted Z-values is approximately ±0.1 (for the 7 sigma case).
 
