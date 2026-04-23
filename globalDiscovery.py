@@ -1,5 +1,4 @@
 # Estimation of global statistical significance for multiple histograms using a toy pseudoexperiment
-# This code runs multiple pseudo-experiments for 63 jet+X masses.
 # You may adjust pyBumpHunter since it uses this package..
 #  Authors: 
 #  Sergei V.Chekanov (ANL)
