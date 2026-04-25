@@ -234,6 +234,7 @@ for event in range(MaxEvents):
          
             for i in range(len(parameters)):
                 value = parameters[i]
+                if (i == 0): value=MinEntries*value
                 back.SetParameter(i, value)
                 if value == 0.0:
                     back.FixParameter(i, value)
