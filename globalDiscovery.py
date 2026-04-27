@@ -1,4 +1,5 @@
 # Estimation of global statistical significance for multiple histograms using a toy pseudoexperiment
+# This code runs multiple pseudo-experiments for 63 jet+X masses.
 # You may adjust pyBumpHunter since it uses this package..
 #  Authors: 
 #  Sergei V.Chekanov (ANL)
@@ -12,7 +13,7 @@ ExpectedLocalZvalue=5
 
 # Maximum pseudo-experiments for global p-value
 # for 6 sigma Z (local), set to maximum value to  a large number
-MaxEvents=100
+MaxEvents=1000
 
 # Do multiplicative factor for function 
 MinEntries = 0.0011 
@@ -62,6 +63,8 @@ MinEntries = float(args.MinEntries)
 isInteractive=bool(args.interactive) 
 fitAgain=bool(args.doFit)
 
+
+ 
 ########### DO NOT CHANGE ANYTHING BELOW ############
 
 import sys
@@ -122,7 +125,7 @@ CHANNELS = [
 print("############## START ################")
 print("The number of pseudo-experiments=",MaxEvents)
 print("Searching for bumps with Z=",ExpectedLocalZvalue," which is ",z_to_p_value(ExpectedLocalZvalue)," p-value")
-print("Float value to multiply p0=",MinEntries)
+print("Float value to multiply p1=",MinEntries)
 print("Is interactive mode ? =",isInteractive)
 print("Do you refit pseudo-data? =",fitAgain)
 
@@ -185,10 +188,15 @@ for i in range(len(parameters)):
                 back.SetParameter(i, value)
                 if value == 0.0:
                     back.FixParameter(i, value)
+
+
 Sum=back.Integral(fit_min, fit_max);
 print("Sum of integral=",Sum);
 
-# sys.exit()
+# output file name
+filename="summary_N"+str(int(Sum))+"_SIGMA"+str(ExpectedLocalZvalue)+".txt"
+
+#sys.exit()
 
 
 # make empty hemplate histogram
@@ -199,20 +207,34 @@ hbackJJ.SetName(hbackJJ_name)
 hbackJJ.SetDirectory(0)
                 
 
-
+TotalEvents=Sum
 NTOT=0
 print("\n#######Loop over events",MaxEvents)
 for event in range(MaxEvents):
 
     BumpFound=False # so far no bump found for this run
 
-    if (event %50 == 0 and event>1 ): 
+    if (event %1000 == 0 and event>1 ): 
                     print("##  Pseudo Event=",event)
                     pvalue=float(NrFound)/NTOT
                     Zval=ROOT.RooStats.PValueToSignificance(pvalue)
                     mem = process.memory_info()
                     print("    So far global p-value=",pvalue, " or Z =",Zval, " evt found=",NrFound, " f(x) Integral=",Sum)
                     print(f"   RSS={mem.rss / 1024**2:.1f} MB", f"VMS={mem.vms / 1024**2:.1f} MB")
+                    file = open(filename, 'w')
+                    try:
+                        file.write("So far events seen ="+str(NTOT)+"\n")
+                        file.write("Found events with bumps="+str(NrFound)+"\n")
+                        file.write("Sum Integral of histogram="+str(TotalEvents)+"\n")
+                        file.write("-> fmin="+str(fit_min)+"\n")
+                        file.write("-> fmax="+str(fit_max)+"\n")
+                        file.write("Expected="+str(ExpectedLocalZvalue)+"\n")
+                        file.write("Found global p-value="+str(pvalue)+"\n")
+                        file.write("Found global Z-value="+str(Zval)+"\n")
+                        file.write(f"   RSS={mem.rss / 1024**2:.1f} MB " f"VMS={mem.vms / 1024**2:.1f} MB\n") 
+                    finally:
+                        file.close()
+
 
 
     # loop over 1 triggers
@@ -239,7 +261,6 @@ for event in range(MaxEvents):
                 if value == 0.0:
                     back.FixParameter(i, value)
 
-
             # -----------------------------------------------------------------
             # CLEAN REWRITE: Single-pass loop for all bin fluctuations
             # -----------------------------------------------------------------
@@ -248,7 +269,6 @@ for event in range(MaxEvents):
             hback.SetTitle(hback_name)
             hback.SetName(hback_name)
             hback.SetDirectory(0)
-
          
             for i in range(hback.GetNbinsX() - 1):
                 center = hback.GetBinCenter(i + 1)
@@ -261,7 +281,8 @@ for event in range(MaxEvents):
                 hback.SetBinContent(i + 1, pseudo_total)
                 hback.SetBinError(i + 1, TMath.Sqrt(pseudo_total) if pseudo_total > 0 else 0)
 
-                
+            
+            fit_max=getMaxNonzero(hback,fit_min, 0.5)
 
             ### finish. Fix some ranges and run BumpHunter
             TotalEvents=hback.Integral(hback.FindBin(fit_min), hback.FindBin(fit_max))
@@ -401,11 +422,28 @@ print()
 print("###### RESULT ###### ")
 print(" Total events requested =", NTOT)
 print(" Found events with bumps=", NrFound)
+print(" Sum Integral of histogram=", Sum)
 pvalue=float(NrFound)/NTOT
 print(" Expected Z=",ExpectedLocalZvalue)
 Zval=ROOT.RooStats.PValueToSignificance(pvalue)
 print(" Found global p-value=",pvalue, " or Z =",Zval)
 print("###### END RESULT ###### ")
+
+
+file = open(filename, 'w')
+try:
+    file.write("FINISHED"+"\n")
+    file.write("Total events requested ="+str(NTOT)+"\n")
+    file.write("Found events with bumps="+str(NrFound)+"\n")
+    file.write("Sum Integral of histogram="+str(TotalEvents)+"\n")   
+    file.write("-> fmin="+str(fit_min)+"\n")
+    file.write("-> fmax="+str(fit_max)+"\n")
+    file.write("Expected="+str(ExpectedLocalZvalue)+"\n")
+    file.write("Found global p-value="+str(pvalue)+"\n")
+    file.write("Found global Z-value="+str(Zval)+"\n")
+finally:
+    file.close()
+
 
 
 figdir="figs/"
@@ -468,4 +506,3 @@ c1.Update()
 if (isInteractive):
               if (input("Press any key to exit") != "-9999"):
                          c1.Close(); sys.exit(1);
-
