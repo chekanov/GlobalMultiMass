@@ -1,9 +1,8 @@
 # Estimation of global statistical significance for multiple histograms using a toy pseudoexperiment
-# This code runs multiple pseudo-experiments for 63 jet+X masses.
+# This code runs multiple pseudo-experiments for 28 masses for a typical PDF-like invariant mass distribution.
 # You may adjust pyBumpHunter since it uses this package..
-#  Authors: 
-#  Sergei V.Chekanov (ANL)
-#  Edison J. Weik 
+# Author: 
+# Sergei V.Chekanov (ANL)
 
 ############### USER SETTING ######################
 
@@ -16,7 +15,7 @@ ExpectedLocalZvalue=5
 MaxEvents=1000
 
 # Do multiplicative factor for function 
-MinEntries = 0.0011 
+MinEntries = 0.0690 
 # Do multiplicative factor for function 
 # MinEntries = 11
 
@@ -28,6 +27,9 @@ fitAgain=False
 
 # CM energy for fit functions
 cms=13000.
+
+## Batch number (for multicore)
+Batch=1
 
 
 # THIS IS FOR PLOTTING and debugging.. 
@@ -47,6 +49,8 @@ parser.add_argument("--ExpectedLocalZvalue", type=float, default=ExpectedLocalZv
                     help="Expected local significance as in BumpHunter (default: 7)")
 parser.add_argument("--MaxEvents", type=int, default=MaxEvents,
                     help="Maximum pseudo-experiments for global p-value (default: 1000)")
+parser.add_argument("--Batch", type=int, default=Batch,
+                    help="Batch number for multicore processing (default: 1)")
 parser.add_argument("--MinEntries", type=float, default=MinEntries,
                     help="Float value to multiply p0 in function function")
 parser.add_argument("--doFit", type=lambda x: (str(x).lower() == 'true'), default=fitAgain,
@@ -59,6 +63,7 @@ args = parser.parse_args()
 # ----------------- Use arguments in your code -----------------
 ExpectedLocalZvalue = float(args.ExpectedLocalZvalue) 
 MaxEvents = int(args.MaxEvents) 
+Batch= int(args.Batch)
 MinEntries = float(args.MinEntries) 
 isInteractive=bool(args.interactive) 
 fitAgain=bool(args.doFit)
@@ -167,12 +172,13 @@ BumpCollector=[]
 mypar={}
 myfunc={}
 TRIG_TYPE=1
-fit_min = 300
-fit_max = 9000
+fit_min = 250. 
+fit_max = 9000. 
 print("Creating all functions ...")
 for channel in CHANNELS:
         name = f"{TRIG_TYPE}_{channel}"
-        parameters = [0.0016723174676486156, 0.5818046917532329, -6.57507710139123, -0.8003038477144173, 0.01]
+        # use parameters https://link.springer.com/article/10.1007/JHEP06(2020)151
+        parameters = [3.88e+05,17.94,4.54,2.26,0.26]
         mback=FiveParam2015()
         back = TF1("back_" + name, mback, fit_min, fit_max, 5)
         mypar[name]=parameters
@@ -191,12 +197,8 @@ for i in range(len(parameters)):
 
 
 Sum=back.Integral(fit_min, fit_max);
-print("Sum of integral=",Sum);
+print("Sum of integral of function=",Sum);
 
-# output file name
-filename="summary_N"+str(int(Sum))+"_SIGMA"+str(ExpectedLocalZvalue)+".txt"
-
-#sys.exit()
 
 
 # make empty hemplate histogram
@@ -205,9 +207,32 @@ hbackJJ = TH1D(hbackJJ_name, hbackJJ_name, len(mjjBins) - 1, mjjBins)
 hbackJJ.SetTitle(hbackJJ_name)
 hbackJJ.SetName(hbackJJ_name)
 hbackJJ.SetDirectory(0)
-                
 
-TotalEvents=Sum
+
+### calculate integral
+htest = hbackJJ.Clone()
+hbackJJ.SetTitle("test")
+hbackJJ.SetName("test")
+htest.SetDirectory(0)
+for i in range(htest.GetNbinsX() - 1):
+      center = htest.GetBinCenter(i + 1)
+      B_total = back.Eval(center)
+      htest.SetBinContent(i + 1, B_total)
+      htest.SetBinError(i + 1, TMath.Sqrt(B_total) if B_total > 0 else 0)
+
+# recalulcte fit_max
+fit_max=getMaxNonzero(htest,fit_min, 0.5)
+### finish. Fix some ranges and run BumpHunter
+TotalEvents=htest.Integral(htest.FindBin(fit_min), htest.FindBin(fit_max))
+print("Sum of integral of histogram=",TotalEvents);
+print("fmin=",fit_min)
+print("fmax=",fit_max)
+
+# output results 
+filename="summary_N"+str(int(TotalEvents))+"_SIGMA"+str(int(ExpectedLocalZvalue))+"_"+str(Batch)+".txt"
+#sys.exit()
+
+
 NTOT=0
 print("\n#######Loop over events",MaxEvents)
 for event in range(MaxEvents):
@@ -282,10 +307,10 @@ for event in range(MaxEvents):
                 hback.SetBinError(i + 1, TMath.Sqrt(pseudo_total) if pseudo_total > 0 else 0)
 
             
-            fit_max=getMaxNonzero(hback,fit_min, 0.5)
+            ## fit_max=getMaxNonzero(hback,fit_min, 0.5)
 
             ### finish. Fix some ranges and run BumpHunter
-            TotalEvents=hback.Integral(hback.FindBin(fit_min), hback.FindBin(fit_max))
+            ### TotalEvents=hback.Integral(hback.FindBin(fit_min), hback.FindBin(fit_max))
 
             
 
