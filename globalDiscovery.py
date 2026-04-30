@@ -233,7 +233,7 @@ print("fmin=",fit_min)
 print("fmax=",fit_max)
 
 # output results 
-filename="results/summary_N"+str(int(TotalEvents))+"_SIGMA"+str(int(ExpectedLocalZvalue))+"_H"+str(NChen)+"_"+str(Batch)+".txt"
+filename="summary_N"+str(int(TotalEvents))+"_SIGMA"+str(int(ExpectedLocalZvalue))+"_H"+str(NChen)+"_"+str(Batch)+".txt"
 #sys.exit()
 
 
