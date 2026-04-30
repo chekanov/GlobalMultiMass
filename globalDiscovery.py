@@ -125,6 +125,10 @@ CHANNELS = [
 
 # 280 numbers
 # CHANNELS = ["jj"]+[str(i) for i in range(1, 280)]
+# CHANNELS=["jj"]
+
+# do not change
+NChen=len(CHANNELS)
 
 
 print("############## START ################")
@@ -229,7 +233,7 @@ print("fmin=",fit_min)
 print("fmax=",fit_max)
 
 # output results 
-filename="summary_N"+str(int(TotalEvents))+"_SIGMA"+str(int(ExpectedLocalZvalue))+"_"+str(Batch)+".txt"
+filename="results/summary_N"+str(int(TotalEvents))+"_SIGMA"+str(int(ExpectedLocalZvalue))+"_H"+str(NChen)+"_"+str(Batch)+".txt"
 #sys.exit()
 
 
@@ -251,6 +255,7 @@ for event in range(MaxEvents):
                         file.write("So far events seen ="+str(NTOT)+"\n")
                         file.write("Found events with bumps="+str(NrFound)+"\n")
                         file.write("Sum Integral of histogram="+str(TotalEvents)+"\n")
+                        file.write("Number of histograms="+str(NChen)+"\n") 
                         file.write("-> fmin="+str(fit_min)+"\n")
                         file.write("-> fmax="+str(fit_max)+"\n")
                         file.write("Expected="+str(ExpectedLocalZvalue)+"\n")
@@ -460,6 +465,7 @@ try:
     file.write("FINISHED"+"\n")
     file.write("Total events requested ="+str(NTOT)+"\n")
     file.write("Found events with bumps="+str(NrFound)+"\n")
+    file.write("Number of histograms="+str(NChen)+"\n")
     file.write("Sum Integral of histogram="+str(TotalEvents)+"\n")   
     file.write("-> fmin="+str(fit_min)+"\n")
     file.write("-> fmax="+str(fit_max)+"\n")
