@@ -86,6 +86,23 @@ You should set `--doFit false` since the statistics is good for these histograms
 It shows the reduction of the global significance  with increase of the number of histograms.
 The jj+jb case are done without overlap.
 
+## Toy pseudoexperiments for independent distributions
+
+This section describes the code used in the paper:
+
+**S. V. Chekanov, E. Weik**  
+*On the Statistical Interpretation of Discoveries in LHC Data*  
+Preprint **HEP-ANL-203752**, May 16, 2026  
+arXiv:**2605.24441**
+
+To reproduce the results presented in the paper, run:
+
+```bash
+Events=20000
+Sigma=3
+python  globalDiscovery.py  --ExpectedLocalZvalue 3  --MaxEvents 20000  --interactive false --MinEntries  0.00009483  --doFit false > /dev/null 2>&1
+```
+The parameter "MinEntries" defines the normalization of the distribution (tune it as needed). The output of this program gives the global p-value. The deafult of this code assumes 280 independent distributions (on the line 127 for the list "CHANNELS"). For 28 masses, comment out the line 127. For just 1 distribution, just use CHANNELS=["jj"] after the line 127.
 
 ## Additional Details
 
